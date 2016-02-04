@@ -1,0 +1,214 @@
+<ion-slide-box on-slide-changed="setActive(0)">
+
+
+<ion-slide>
+
+<ion-header-bar align-title="center" class="bar-light">
+<a class="button button-icon icon ion-navicon" ui-sref="menu"></a>
+  		<h1 class="title">This week</h1>
+	</ion-header-bar>
+	
+	
+	<div class="filter-role" ng-hide="daysMenuActiveItem > 0">
+	<div class="input-label">
+      Role
+    </div>
+	<label class="item-input-inset item-select">
+	<select ng-options="role as role.name for role in roles track by role.id" ng-model="data.filterRole">
+	<option value="" selected>All</option>
+	</select>
+	</label>
+	</div>
+	  		
+	<ion-scroll class="days" direction="y">
+  <ion-list type="list-inset">
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == -1}" ng-click="setActive(-1)">
+  		<h3>Backlog</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 0}" ng-click="setActive(0)">
+  		<h3>Week</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 1}" ng-click="setActive(1)">
+  		<h3>Mon</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 2}" ng-click="setActive(2)">
+  		<h3>Tue</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 3}" ng-click="setActive(3)">
+  		<h3>Wed</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 4}" ng-click="setActive(4)">
+  		<h3>Thu</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 5}" ng-click="setActive(5)">
+  		<h3>Fri</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 6}" ng-click="setActive(6)">
+  		<h3>Sat</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 7}" ng-click="setActive(7)">
+  		<h3>Sun</h3>
+  	</ion-item>
+  </ion-list>
+</ion-scroll>
+
+<form ng-submit="createNewTask()">
+<div class="item item-input-inset tasks-create">
+<input type="text" placeholder="New task" ng-model="data.newTaskName" ng-readonly="data.inputReadOnly">
+<input type="submit">
+</div>
+</form>
+
+<ion-scroll class="tasks-content" direction="y">
+  <ul class="list list-inset">
+
+  <li class="item item-checkbox item-checkbox-right checkbox-balanced" ng-class="{'task-finished' : task.finished == true}" ng-repeat="task in tasks | TasksDateFilter:daysMenuActiveItemDate | TasksRoleFilter:data.filterRole | TasksOrder">
+     <label class="checkbox">
+       <input type="checkbox" ng-model="task.finished" ng-change="checkTask(task)">
+     </label>
+     <div ng-click="viewDetails(task)">
+     <span ng-class="{'important' : task.important}">{{task.name}}</span>
+  	<br>
+  	<span class="task-info">{{task.role.name + "&nbsp;"}}</span>
+  	<span class="task-info" ng-if="task.date != null">{{task.date.day + "-" + task.date.month + "-" + task.date.year + "&nbsp;"}}</span>
+  	<span class="task-info" ng-if="task.time != null">{{task.time.hours + ":" + task.time.minutes}}</span>
+     </div>
+  </li>
+</ul>
+ </ion-scroll>
+
+ </ion-slide>
+
+<ion-slide>
+
+<ion-header-bar align-title="center" class="bar-light">
+<a class="button button-icon icon ion-navicon" ui-sref="menu"></a>
+  		<h1 class="title">Next week</h1>
+	</ion-header-bar>
+	
+	
+	<div class="filter-role" ng-hide="daysMenuActiveItem > 0">
+	<div class="input-label">
+      Role
+    </div>
+	<label class="item-input-inset item-select">
+	<select ng-options="role as role.name for role in roles track by role.id" ng-model="data.filterRole">
+	<option value="" selected>All</option>
+	</select>
+	</label>
+	</div>
+	
+	<ion-scroll class="days" direction="y">
+  <ion-list type="list-inset">
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == -1}" ng-click="setActive(-1)">
+  		<h3>Backlog</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 0}" ng-click="setActive(0)">
+  		<h3>Week</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 1}" ng-click="setActive(1)">
+  		<h3>Mon</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 2}" ng-click="setActive(2)">
+  		<h3>Tue</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 3}" ng-click="setActive(3)">
+  		<h3>Wed</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 4}" ng-click="setActive(4)">
+  		<h3>Thu</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 5}" ng-click="setActive(5)">
+  		<h3>Fri</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 6}" ng-click="setActive(6)">
+  		<h3>Sat</h3>
+  	</ion-item>
+  	<ion-item ng-class="{'activeItem' : daysMenuActiveItem == 7}" ng-click="setActive(7)">
+  		<h3>Sun</h3>
+  	</ion-item>
+  </ion-list>
+</ion-scroll>
+
+<form ng-submit="createNewTask()">
+<div class="item item-input-inset tasks-create">
+<input type="text" placeholder="New task" ng-model="data.newTaskName">
+<input type="submit">
+</div>
+</form>
+
+<ion-scroll class="tasks-content" direction="y">
+
+  <ul class="list list-inset">
+
+  <li class="item item-checkbox item-checkbox-right checkbox-balanced" ng-class="{'task-finished' : task.finished == true}" ng-repeat="task in tasks | TasksDateFilter:daysMenuActiveItemDate | TasksRoleFilter:data.filterRole | TasksOrder">
+     <label class="checkbox">
+       <input type="checkbox" ng-model="task.finished" ng-change="checkTask(task)">
+     </label>
+     <div ng-click="viewDetails(task)">
+     <span ng-class="{'important' : task.important}">{{task.name}}</span>
+  	<br>
+  	<span class="task-info">{{task.role.name + "&nbsp;"}}</span>
+  	<span class="task-info" ng-if="task.date != null">{{task.date.day + "-" + task.date.month + "-" + task.date.year + "&nbsp;"}}</span>
+  	<span class="task-info" ng-if="task.time != null">{{task.time.hours + ":" + task.time.minutes}}</span>
+     </div>
+  </li>
+</ul>
+ </ion-scroll>
+</ion-slide>
+<ion-slide>
+<ion-header-bar align-title="center" class="bar-light">
+<a class="button button-icon icon ion-navicon" ui-sref="menu"></a>
+  		<h1 class="title">All tasks</h1>
+	</ion-header-bar>
+<div class="filter-role">
+	<div class="input-label">
+      Role
+    </div>
+	<label class="item-input-inset item-select">
+	<select ng-options="role as role.name for role in roles track by role.id" ng-model="data.filterRole">
+	<option value="" selected>All</option>
+	</select>
+	</label>
+	</div>
+<form ng-submit="createNewTask()">
+<div class="item item-input-inset tasks-create">
+<input type="text" placeholder="New task" ng-model="data.newTaskName">
+<input type="submit">
+</div>
+</form>
+
+<ion-scroll class="tasks-content" direction="y">
+  <ul class="list list-inset">
+
+  <li class="item item-checkbox item-checkbox-right checkbox-balanced" ng-class="{'task-finished' : task.finished == true}" ng-repeat="task in tasks | TasksRoleFilter:data.filterRole | TasksOrder">
+     <label class="checkbox">
+       <input type="checkbox" ng-model="task.finished" ng-change="checkTask(task)">
+     </label>
+     <div ng-click="viewDetails(task)">
+     <span ng-class="{'important' : task.important}">{{task.name}}</span>
+  	<br>
+  	<span class="task-info">{{task.role.name + "&nbsp;"}}</span>
+  	<span class="task-info" ng-if="task.date != null">{{task.date.day + "-" + task.date.month + "-" + task.date.year + "&nbsp;"}}</span>
+  	<span class="task-info" ng-if="task.time != null">{{task.time.hours + ":" + task.time.minutes}}</span>
+     </div>
+  </li>
+</ul>
+ </ion-scroll>
+ 
+</ion-slide>
+  </ion-slide-box>
+  
+  <ion-footer-bar align-title="center" class="bar-light">
+  <!--  
+  <div class="buttons">
+  <button class="button button-icon ion-leaf green" ui-sref="pm({userId:1})"></button>
+	<button class="button button-icon ion-document-text" ui-sref="tasks({userId:1})"></button>
+  </div>
+  <h1 class="title"></h1>
+  <div class="buttons">
+  <button class="button button-icon ion-stats-bars" ui-sref="stats"></button>
+	<button class="button button-icon ion-information-circled" ui-sref="info"></button>
+  </div>
+  -->
+    </ion-footer-bar>

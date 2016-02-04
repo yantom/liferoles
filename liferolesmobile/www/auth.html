@@ -1,0 +1,63 @@
+<ion-header-bar class="bar-light" align-title="center">
+
+<span class="authButton" ng-click="setActive(0)" ng-class="{'activeItem' : authActiveItem == 0}">
+<h3>Login</h3>
+</span>
+
+<span class="authButton" ng-click="setActive(1)" ng-class="{'activeItem' : authActiveItem == 1}">
+<h3>Register</h3>
+</span>
+
+  		<h1 class="title">Liferoles</h1>
+	</ion-header-bar>
+	<ion-content>
+	
+<div class="list list-inset" ng-show="authActiveItem==0">	
+  <label class="item item-input">
+    <input type="email" placeholder="Email" ng-model="data.email">
+  </label>
+  <label class="item item-input">
+    <input type="password" placeholder="Password" ng-model="data.password">
+  </label>
+  <button class="button button-block button-balanced">
+	Login
+  </button>
+  <p><a href="" ng-click="showForgotPasswordPopup()">I forgot my password.</a></p>
+</div>
+
+<div class="list list-inset" ng-show="authActiveItem==1">
+<label class="item item-input">
+    <input type="email" placeholder="Email" ng-model="data.email">
+  </label>
+  <label class="item item-input">
+    <input type="email" placeholder="Repeat email" ng-model="data.emailcheck">
+  </label>
+  <label class="item item-input">
+    <input type="password" placeholder="Password" ng-blur="data.passwordStrong=checkPasswordComplexity()" ng-model="data.password">
+  </label>
+  <label class="item item-input">
+    <input type="password" placeholder="Repeat password" ng-model="data.passwordcheck">
+  </label>
+  <div class="item">
+  <p>Choose preferred language:</p>
+  <img src="img/en.png" width="50px" ng-click="data.language='EN'" ng-class="{'choosed-language' : data.language=='EN'}">
+  <img src="img/cz.png" width="50px" ng-click="data.language='CZ'" ng-class="{'choosed-language' : data.language=='CZ'}">
+  <img src="img/sk.png" width="50px" ng-click="data.language='SK'" ng-class="{'choosed-language' : data.language=='SK'}">
+  </div>
+	<div class="card" ng-hide="data.errMsg == ''">
+	<div class="item item-text-wrap">
+	<p id="red-text" >{{data.errMsg}}</p>
+	</div>
+</div>
+	<div class="card" ng-show="!data.passwordStrong && data.password.length >=6">
+  <div class="item item-text-wrap">
+    <p id="orange-text">Password is not strong.</p>
+	<p>Strong password should be at least 8 characters long and should contain lowercase letter, uppercase letter, number and special character (+-*/?! ...).</p>
+  </div>
+</div>
+	
+ <button class="button button-block button-balanced" ng-click="register()">
+	Register
+  </button>
+  </div>
+	</ion-content>
