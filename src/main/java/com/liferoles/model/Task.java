@@ -26,6 +26,8 @@ import com.liferoles.rest.JSON.LocalTimeDeserializer;
 import com.liferoles.rest.JSON.LocalTimeSerializer;
 import com.liferoles.rest.JSON.RolePartialDeserializer;
 import com.liferoles.rest.JSON.RolePartialSerializer;
+import com.liferoles.rest.JSON.UserIdDeserializer;
+import com.liferoles.rest.JSON.UserIdSerializer;
 
 
 /**
@@ -75,6 +77,12 @@ public class Task implements Serializable{
     @JoinColumn(name="role_id")
     private Role role;
     
+    @ManyToOne
+    @JsonSerialize(using = UserIdSerializer.class)
+    @JsonDeserialize(using = UserIdDeserializer.class)
+    @JoinColumn(name="appuser_id")
+    private User user;
+    
     @JsonSerialize(using = LocalDateSerializer.class)
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate date;
@@ -113,6 +121,14 @@ public class Task implements Serializable{
 
 	public void setRole(Role role) {
 		this.role = role;
+	}
+	
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public LocalDate getFirstDate() {

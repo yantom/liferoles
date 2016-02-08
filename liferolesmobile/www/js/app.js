@@ -1,24 +1,29 @@
 var app = angular.module('liferolesApp', ['ngCordova','ionic','ngResource']);
 
-app.run(function($rootScope,$resource) {
+app.run(function($rootScope,$http,$state) {
     $rootScope.isAndroid = ionic.Platform.isAndroid();
     $rootScope.hostAddress = "https://localhost:8443/liferoles/rest/";
-    $rootScope.user = $resource($rootScope.hostAddress + 'users/').get({userId:1});
+    $rootScope.user = $http.get($rootScope.hostAddress + 'users');
+    $state.go("menu");
 });
 
 app.config(function($stateProvider, $urlRouterProvider,$ionicConfigProvider) {
+	$stateProvider.state('menu', {
+    	url: '/menu',
+        templateUrl : 'menu.html'
+    });
 	$stateProvider.state('stats', {
         	url: '/stats',
             templateUrl : 'stats.html',
             controller : 'statsCtrl'
         });
         $stateProvider.state('tasks', {
-        	url: '/tasks/',
+        	url: '/tasks',
             templateUrl : 'tasks.html',
 			controller : 'tasksCtrl'
         });
         $stateProvider.state('roles',{
-        	url: '/roles/',
+        	url: '/roles',
         	templateUrl: 'roles.html',
         	controller : 'rolesCtrl'
         });
@@ -36,12 +41,8 @@ app.config(function($stateProvider, $urlRouterProvider,$ionicConfigProvider) {
             controller : 'roleCtrl',
             params: {roleId:null}
         });
-        $stateProvider.state('menu', {
-        	url: '/menu',
-            templateUrl : 'menu.html'
-        });
         $stateProvider.state('pm', {
-        	url: '/pm/',
+        	url: '/pm',
             templateUrl : 'pm.html',
             controller : 'pmCtrl'
         });
@@ -49,17 +50,6 @@ app.config(function($stateProvider, $urlRouterProvider,$ionicConfigProvider) {
         	url: '/info',
             templateUrl : 'info.html'
         });
-		$stateProvider.state('auth', {
-			url: '/auth',
-            templateUrl : 'auth.html',
-			controller : 'authCtrl',
-        });
-		$stateProvider.state('reg', {
-			url: '/reg',
-            templateUrl : 'reg.html',
-			controller : 'authCtrl',
-        });
-        $urlRouterProvider.otherwise('/menu');
         $ionicConfigProvider.views.forwardCache(true);
 });
 
@@ -74,7 +64,6 @@ app.filter('TasksDateFilter',function(){
 			}
 			return out;
 		}
-		
 		if(!(Object.prototype.toString.call(date) === '[object Date]')){
 			var taskDate = new Date();
 			for(i = 0; i<tasks.length; i++){
@@ -138,21 +127,16 @@ app.filter('TasksOrder',function(){
 	}
 });
 app.factory('TaskFactory',function($resource,$rootScope){
-	return $resource($rootScope.hostAddress + 'tasks/:userId',{},{'update':{method:'PUT'}});
+	return $resource($rootScope.hostAddress + 'tasks',{},{'update':{method:'PUT'}});
 });
 app.factory('RoleFactory',function($resource,$rootScope){
-	return $resource($rootScope.hostAddress + 'roles/:userId',{},{'update':{method:'PUT'}});
-});
-app.factory('UserFactory',function($resource,$rootScope){
-	return $resource($rootScope.hostAddress + 'users/',{},{'update':{method:'PUT'}});
-});
-app.factory('AuthFactory',function($resource,$rootScope){
-	return $resource($rootScope.hostAddress + 'auth/:userId',{},{'update':{method:'PUT'}});
+	return $resource($rootScope.hostAddress + 'roles',{},{'update':{method:'PUT'}});
 });
 
-app.factory('TasksAndRoles',function($resource,$rootScope,TaskFactory,RoleFactory){
+
+app.factory('TasksAndRoles',function($rootScope,TaskFactory,RoleFactory){
 	
-	var tasksList = TaskFactory.query({userId:1},
+	var tasksList = TaskFactory.query(
 			function(dbResult){
 		if(dbResult != null)
 			$rootScope.$broadcast('tasksLoaded');
@@ -160,7 +144,7 @@ app.factory('TasksAndRoles',function($resource,$rootScope,TaskFactory,RoleFactor
 			alert("problem occured on the server side, please report problem at: URL");},
 			function(){alert("internet connection problem");});
 	
-	var rolesList = RoleFactory.query({userId:1},
+	var rolesList = RoleFactory.query(
 			function(dbResult){
 		if(dbResult == null)
 			alert("problem occured on the server side, please report problem at: URL");},
@@ -505,7 +489,7 @@ app.controller("taskCtrl",function($scope, $stateParams, TasksAndRoles, TaskFact
 		}
 });
 
-app.controller("roleCtrl",function($scope, $stateParams,TasksAndRoles, $ionicPopup, $state,$rootScope,$rootScope, RoleFactory, $ionicPopover){
+app.controller("roleCtrl",function($scope, $stateParams,TasksAndRoles, $ionicPopup, $state,$rootScope, RoleFactory, $ionicPopover){
 	$scope.role = TasksAndRoles.getRoleCpyById($stateParams.roleId);
 	$scope.roles = TasksAndRoles.getRoles();
 	$scope.data = {newRoleId:null}
@@ -641,165 +625,6 @@ app.controller('dateCtrl',function($scope,$cordovaDatePicker,$rootScope){
 	        $scope.task.time = null;
 	    });
 	 }
-});
-
-app.controller("authCtrl",function($scope, UserFactory, AuthFactory, $ionicPopup){
-	$scope.data = {email:"",emailcheck:"",password:"",passwordcheck:"",errMsg:"",passwordStrong:true,language:"EN"};
-	$scope.authActiveItem = 0;
-	
-	$scope.checkPasswordComplexity = function(){
-		
-		var lowercaseRegex = /.*[a-z].*/;
-		var uppercaseRegex = /.*[A-Z].*/;
-		var specialCharRegex = /.*[^a-zA-Z0-9].*/;
-		var numberRegex = /.*\d.*/;
-		if($scope.data.password.length < 8)
-			return false;
-		if(!specialCharRegex.test($scope.data.password))
-			return false;
-		if(!numberRegex.test($scope.data.password))
-			return false;
-		if(!uppercaseRegex.test($scope.data.password))
-			return false;
-		if(!lowercaseRegex.test($scope.data.password))
-			return false;
-		return true;
-	};
-	
-	var resetData = function(){
-		$scope.data = {email:"",emailcheck:"",password:"",passwordcheck:"",errMsg:"",passwordStrong:true,language:"EN"};
-	};
-	
-	$scope.setActive = function(num){
-		resetData();
-		$scope.authActiveItem = num;
-	};
-	
-	$scope.register= function(){
-		$scope.data.errMsg = "";
-		if(!checkIfEmailMatchSimpleRegex()){
-			$scope.data.errMsg="Invalid email format.";
-			return;
-		}
-		if($scope.data.password.length < 6){
-			$scope.data.errMsg="Password must be at least 6 characters long.";
-			return;
-		}
-		if($scope.data.password != $scope.data.passwordcheck){
-			$scope.data.errMsg="Passwords don't match.";
-			return;
-		}
-		if($scope.data.email != $scope.data.emailcheck){
-			$scope.data.errMsg="Emails don't match.";
-			return;
-		}
-		
-		getUserByMail($scope.data.email).then(function(result){
-			if(result == null){
-				createNewUser({
-					language:$scope.data.language,
-					email:$scope.data.email,
-					password:$scope.data.password
-				});
-			}
-			else{
-				alert("User with this email already exists in database.");
-			}
-		},
-		function(){
-			alert("Problem occurred on the server side, please report problem at: URL");
-		});
-	};
-	var clearString = function(string){
-		string="";
-	}
-	var getUserByMail = function(mail){
-		return new Promise(function(resolve,reject){
-			UserFactory.get({userMail:mail},
-			function(result){
-			if (result.id === undefined)
-				resolve(null);
-			else
-				resolve(result);
-		},
-		function(){
-		reject("Internet connection problem.");
-		}
-		);});
-	};
-	
-	var checkIfEmailMatchSimpleRegex = function(){
-		var re = /\S+@\S+\.\S+/;
-		return re.test($scope.data.email);
-	};
-	
-	var sendPasswordResetLink = function(mail,id){
-		AuthFactory.save({userId:id,userMail:mail},{},
-		function(result){
-			if (result.response == true)
-				alert("Password reset link was send to your email.");
-			else
-				alert("Problem occurred on the server side, please report problem at: URL");
-		},
-		function(){
-			alert("Internet connection problem.");
-		}
-		);
-	}
-	
-	var createNewUser = function(user){
-		UserFactory.save(user,function(dbResult){
-			if(dbResult.id == null){
-				$scope.data.errMsg="problem occurred on the server side, please report problem at: URL";
-			}
-			else{
-				alert("You have been registered, now you can login.");
-				$scope.setActive(0);
-				
-		}},function(){$scope.data.errMsg = "internet connection problem";});
-	}
-	
-	var forgotPasswordPopupSpec = {
-			template: '<input type="email" ng-model="data.email">',
-			title: 'Enter your email',
-			scope: $scope,
-	  
-			buttons: [
-			{text: 'Cancel',
-			onTap: function(e){$scope.data.email = null;}
-			},
-			{text: 'OK',
-				onTap: function(e) {
-				if (!checkIfEmailMatchSimpleRegex($scope.data.email)){
-					alert("Invalid email format.");
-					e.preventDefault();
-					return;
-				}
-				getUserByMail($scope.data.email).then(
-					function(result){
-						if(result!=null){
-						sendPasswordResetLink($scope.data.email,result.id);
-						$scope.data.email = null;}
-						else{
-							$scope.data.email = null;
-							alert("No such user in database.");
-						}
-					},
-					function(errMessage){
-						$scope.data.email = null;
-						alert(errMessage);
-					}
-				);			
-				}
-			}
-			]
-		};
-	
-	$scope.showForgotPasswordPopup = function(){
-		var popup = $ionicPopup.show(forgotPasswordPopupSpec);
-	};
-	
-	
 });
 
 function textAreaAdjust(o) {

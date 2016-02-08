@@ -14,7 +14,11 @@ public class UserIdDeserializer extends JsonDeserializer<User> {
 	public User deserialize(JsonParser jp, DeserializationContext arg1)throws IOException, JsonProcessingException {
 		JsonNode node = jp.getCodec().readTree(jp);
 		User u = new User();
-		u.setId(node.get("id").asLong());
+		JsonNode userId = node.get("id");
+		if(userId == null)
+			u.setId(null);
+		else
+			u.setId(userId.asLong());
 		return u;
 	}
 }

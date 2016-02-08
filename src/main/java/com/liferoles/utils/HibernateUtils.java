@@ -13,7 +13,7 @@ import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.jdbc.Work;
 
-import com.liferoles.model.LifeRolesDBException;
+import com.liferoles.LifeRolesDBException;
 
 public class HibernateUtils {
 	

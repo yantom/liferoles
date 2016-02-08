@@ -1,4 +1,4 @@
-package com.liferoles.model;
+package com.liferoles;
 
 public class LifeRolesDBException extends Exception {
 	

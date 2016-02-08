@@ -14,6 +14,7 @@ import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liferoles.LifeRolesDBException;
 import com.liferoles.model.*;
 import com.liferoles.utils.HibernateUtils;
 
@@ -97,8 +98,8 @@ public class TaskManager {
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
-			Query query = session.createQuery("from Task where id = ?");
-			query.setLong(0, id);
+			Query query = session.createQuery("from Task where id = :id");
+			query.setLong("id", id);
 			t = (Task)query.uniqueResult();
 			tx.commit();
 		}catch(HibernateException e){
@@ -119,8 +120,8 @@ public class TaskManager {
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
-			Query query = session.createQuery("from Task where role.id in (select id from Role where user.id = ?)");
-			
+			Query query = session.createQuery("from Task where user.id = :id)");
+			query.setLong("id", userId);
 			taskList = query.list();
 			tx.commit();
 		}catch(HibernateException e){
@@ -141,9 +142,9 @@ public class TaskManager {
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
-			Query query = session.createQuery("from Task where role.id in (select id from Role where user.id = ?) and ((date is null) or (date >= ?))");
-			query.setLong(0, userId);
-			query.setDate(1, getDateFrom());
+			Query query = session.createQuery("from Task where user.id = :id and ((date is null) or (date >= :dateFrom))");
+			query.setLong("id", userId);
+			query.setDate("dateFrom", getDateFrom());
 			taskList = query.list();
 			tx.commit();
 		}catch(HibernateException e){

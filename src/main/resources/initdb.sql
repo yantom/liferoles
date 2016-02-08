@@ -44,11 +44,14 @@ CREATE TABLE task
   finished boolean NOT NULL,
   note text,
   important boolean NOT NULL,
+  appuser_id bigint,
   role_id bigint,
   CONSTRAINT pk_task PRIMARY KEY (id),
   CONSTRAINT fk_role FOREIGN KEY (role_id)
       REFERENCES role (id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE
+      ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_user FOREIGN KEY (appuser_id)
+      REFERENCES appuser (id) MATCH SIMPLE
 );
 
 CREATE SEQUENCE passwordreset_id_seq
@@ -73,4 +76,5 @@ CREATE SEQUENCE task_id_seq
 
 CREATE INDEX fki_role ON task (role_id);
 CREATE INDEX fki_rappuser ON role (appuser_id);
+CREATE INDEX fki_tappuser ON task (appuser_id);
 CREATE INDEX fki_pappuser ON passwordreset (appuser_id);

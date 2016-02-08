@@ -10,6 +10,7 @@ import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liferoles.LifeRolesDBException;
 import com.liferoles.model.*;
 import com.liferoles.utils.HibernateUtils;
 
@@ -74,9 +75,9 @@ public class RoleManager {
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
-			Query query = session.createQuery("update Task set role.id = ? where role.id = ?)");
-			query.setLong(0, newRole.getId());
-			query.setLong(1, deletedRole.getId());
+			Query query = session.createQuery("update Task set role.id = :newRoleId where role.id = :oldRoleId)");
+			query.setLong("newRoleId", newRole.getId());
+			query.setLong("oldRoleId", deletedRole.getId());
 			query.executeUpdate();
 			session.delete(deletedRole);
 			tx.commit();
@@ -119,8 +120,8 @@ public class RoleManager {
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
-			Query query = session.createQuery("from Role where id = ?");
-			query.setLong(0, id);
+			Query query = session.createQuery("from Role where id = :id");
+			query.setLong("id", id);
 			r = (Role)query.uniqueResult();
 			tx.commit();
 		}catch(HibernateException e){
@@ -141,8 +142,8 @@ public class RoleManager {
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
-			Query query = session.createQuery("from Role where user.id = ?");
-			query.setLong(0, userId);
+			Query query = session.createQuery("from Role where user.id = :id");
+			query.setLong("id", userId);
 			roleList = query.list();
 			tx.commit();
 		}catch(HibernateException e){

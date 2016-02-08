@@ -2,6 +2,7 @@ package com.liferoles.rest;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -11,11 +12,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.liferoles.LifeRolesDBException;
 import com.liferoles.controller.RoleManager;
-import com.liferoles.model.LifeRolesDBException;
 import com.liferoles.model.Role;
+import com.liferoles.model.User;
 import com.liferoles.rest.JSON.BooleanResponse;
 import com.liferoles.rest.JSON.IdResponse;
 
@@ -24,9 +27,9 @@ public class RestRole {
 	private static final RoleManager rm = new RoleManager();
 	
 	@GET
-    @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Role> getAllRoles(@PathParam("userId") Long userId) {
+    public List<Role> getAllRoles(@Context HttpServletRequest hsr) {
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
     	List<Role> r = null;
 		try {
 			r = rm.getAllRoles(userId);
@@ -37,10 +40,12 @@ public class RestRole {
     }
 	
 	@POST
-    @Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createRole(Role role) {
+    public IdResponse createRole(Role role, @Context HttpServletRequest hsr) {
+		User u = new User();
+		u.setId((Long) hsr.getSession().getAttribute("userId"));
+		role.setUser(u);
 		IdResponse id = new IdResponse();
 		try{
 		id.setId(rm.createRole(role));}
@@ -51,9 +56,11 @@ public class RestRole {
     }
 	
 	@PUT
-    @Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
-    public BooleanResponse updateRole(Role role) {
+    public BooleanResponse updateRole(Role role, @Context HttpServletRequest hsr) {
+		User u = new User();
+		u.setId((Long) hsr.getSession().getAttribute("userId"));
+		role.setUser(u);
 		try{
 			rm.updateRole(role);}
 			catch (LifeRolesDBException e) {
@@ -64,10 +71,12 @@ public class RestRole {
     }
 	
 	@DELETE
-    @Path("/")
-    public BooleanResponse deleteRole(@QueryParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId) {
+    public BooleanResponse deleteRole(@QueryParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) {
+		User u = new User();
+		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		Role deletedRole = new Role();
 		deletedRole.setId(roleId);
+		deletedRole.setUser(u);
 		try{
 
 			if(newRoleId == null){
@@ -76,6 +85,7 @@ public class RestRole {
 			else{
 				Role newRole = new Role();
 				newRole.setId(newRoleId);
+				newRole.setUser(u);
 				rm.deleteRole(deletedRole, newRole);
 			}
 			}
