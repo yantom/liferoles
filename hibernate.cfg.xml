@@ -10,8 +10,8 @@ org.postgresql.Driver
 <property name="connection.url">
 jdbc:postgresql://localhost:5432/appdb
 </property>
-<property name="connection.username">yantom</property>
-<property name="connection.password">A4TECH</property>
+<property name="connection.username">usr</property>
+<property name="connection.password">passwd</property>
 <property name="dialect">
 org.hibernate.dialect.PostgreSQLDialect
 </property>
