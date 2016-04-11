@@ -7,33 +7,39 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.liferoles.model.Language;
+import com.liferoles.model.Day;
 import com.liferoles.model.User;
 
 public class UserPartialDeserializer extends JsonDeserializer<User> {
 	@Override
 	public User deserialize(JsonParser jp, DeserializationContext arg1)throws IOException, JsonProcessingException {
-		JsonNode node = jp.getCodec().readTree(jp);
+		JsonNode mainNode = jp.getCodec().readTree(jp);
+		JsonNode node;
 		User u = new User();
-		JsonNode userId = node.get("id");
-		if(userId == null)
+		
+		node = mainNode.get("id");
+		if(node == null)
 			u.setId(null);
 		else
-			u.setId(userId.asLong());
-		JsonNode userPersonalMission = node.get("personalMission");
-		if(userPersonalMission == null)
-			u.setPersonalMission(null);
+			u.setId(node.asLong());
+		
+		node=mainNode.get("email");
+		if(node == null)
+			u.setEmail(null);
 		else
-			u.setPersonalMission(userPersonalMission.asText());
-		u.setEmail(node.get("email").asText());
+			u.setEmail(node.asText());
 		
-		u.setLanguage(Language.valueOf(node.get("language").asText()));
-		
-		JsonNode userPassword = node.get("password");
-		if(userPassword == null)
+		node = mainNode.get("password");
+		if(node == null)
 			u.setPassword(null);
 		else
-			u.setPassword(userPassword.asText());
+			u.setPassword(node.asText());
+		
+		node = mainNode.get("firstDayOfWeek");
+		if(node == null)
+			u.setFirstDayOfWeek(null);
+		else
+			u.setFirstDayOfWeek(Day.values()[node.asInt()]);
 		return u;
 	}
 }

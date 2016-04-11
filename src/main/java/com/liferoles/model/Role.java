@@ -27,7 +27,7 @@ import com.liferoles.rest.JSON.UserIdSerializer;
 @Entity
 public class Role implements Serializable{
     
-	@SequenceGenerator(name="role_id", sequenceName="role_id_seq")
+	@SequenceGenerator(name="role_id", sequenceName="role_id_seq", allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="role_id")
 	@Id
 	private Long id;
@@ -64,7 +64,7 @@ public class Role implements Serializable{
 	
 	@Override
     public String toString() {
-        return "Role{" + "id=" + getId() + ", name=" + getName() + '}';
+        return "Role with id" + id;
     }
 
 	@Override

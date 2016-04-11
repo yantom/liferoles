@@ -1,4 +1,4 @@
-package com.liferoles;
+package com.liferoles.exceptions;
 
 public class LifeRolesException extends Exception {
 	

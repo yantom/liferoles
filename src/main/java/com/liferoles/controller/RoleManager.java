@@ -2,7 +2,6 @@ package com.liferoles.controller;
 
 import java.util.List;
 
-import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -10,22 +9,15 @@ import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.liferoles.LifeRolesDBException;
 import com.liferoles.model.*;
 import com.liferoles.utils.HibernateUtils;
 
 public class RoleManager {
-	
-	private Session session;
 	private static final Logger logger = LoggerFactory.getLogger(RoleManager.class);
 	
-	public Long createRole(Role role) throws LifeRolesDBException{
-		if(role == null){
-			logger.error("role was not created due to application failure");
-			throw new IllegalArgumentException("role cant be null");
-		}
+	public Long createRole(Role role){
 		Long id;
-		session = HibernateUtils.getSessionFactory().openSession();
+		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		try{
 			tx = session.beginTransaction();
@@ -34,8 +26,8 @@ public class RoleManager {
 			tx.commit();
 		}catch (HibernateException e) {
 			if (tx != null) tx.rollback();
-			logger.error("db error occured while creating " + role.toString());
-			throw new LifeRolesDBException(e);
+			logger.error("db error occured while creating " + role.toString(),e);
+			throw e;
 			}
 		finally {
 			session.close();
@@ -44,12 +36,8 @@ public class RoleManager {
 		return id;
 	}
 	
-	public void deleteRole(Role role)throws LifeRolesDBException{
-		if(role == null){
-			logger.error("role was not deleted due to application failure");
-			throw new IllegalArgumentException("role cant be null");
-		}
-		session = HibernateUtils.getSessionFactory().openSession();
+	public void deleteRole(Role role){
+		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
@@ -57,8 +45,8 @@ public class RoleManager {
 			tx.commit();
 		}catch(HibernateException e){
 			if(tx!=null) tx.rollback();
-			logger.error("db error occured while deleting " + role.toString());
-			throw new LifeRolesDBException(e);
+			logger.error("db error occured while deleting " + role.toString(),e);
+			throw e;
 		}
 		finally {
 			session.close();
@@ -66,12 +54,8 @@ public class RoleManager {
 		logger.info(role.toString() + " deleted");
 	}
 	
-	public void deleteRole(Role deletedRole, Role newRole) throws LifeRolesDBException{
-		if(deletedRole == null || newRole == null){
-			logger.error("role was not deleted due to application failure");
-			throw new IllegalArgumentException("role cant be null");
-		}
-		session = HibernateUtils.getSessionFactory().openSession();
+	public void deleteRole(Role deletedRole, Role newRole){
+		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
@@ -83,21 +67,17 @@ public class RoleManager {
 			tx.commit();
 		}catch(HibernateException e){
 			if(tx!=null) tx.rollback();
-			logger.error("db error occured while deleting role with id" + deletedRole.getId() + "and moving tasks to role with id" + newRole.getId());
-			throw new LifeRolesDBException(e);
+			logger.error("db error occured while deleting " + deletedRole + " and moving tasks to " + newRole,e);
+			throw e;
 		}
 		finally {
 			session.close();
 		}
-		logger.info(deletedRole.toString() + "role with id" + deletedRole.getId() + "deleted, tasks moved under role with id" + newRole.getId());
+		logger.info(deletedRole + " deleted, tasks moved under " + newRole);
 	}
 	
-	public void updateRole(Role role)throws LifeRolesDBException{
-		if(role == null){
-			logger.error("role was not updated due to application failure");
-			throw new IllegalArgumentException("role cant be null");
-		}
-		session = HibernateUtils.getSessionFactory().openSession();
+	public void updateRole(Role role){
+		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
@@ -105,8 +85,8 @@ public class RoleManager {
 			tx.commit();
 		}catch(HibernateException e){
 			if(tx!=null) tx.rollback();
-			logger.error("db error occured while updating " + role.toString());
-			throw new LifeRolesDBException(e);
+			logger.error("db error occured while updating " + role.toString(),e);
+			throw e;
 		}
 		finally {
 			session.close();
@@ -114,9 +94,9 @@ public class RoleManager {
 		logger.info(role.toString() + " updated");
 	}
 	
-	public Role getRoleById(Long id) throws LifeRolesDBException{
+	public Role getRoleById(Long id){
 		Role r;
-		session = HibernateUtils.getSessionFactory().openSession();
+		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
@@ -126,8 +106,8 @@ public class RoleManager {
 			tx.commit();
 		}catch(HibernateException e){
 			if(tx!=null) tx.rollback();
-			logger.error("db error occured while retrieving role with id " + id);
-			throw new LifeRolesDBException(e);
+			logger.error("db error occured while retrieving role with id " + id,e);
+			throw e;
 		}
 		finally {
 			session.close();
@@ -136,9 +116,9 @@ public class RoleManager {
 		return r;
 	}
 	
-	public List<Role> getAllRoles(Long userId) throws LifeRolesDBException{
+	public List<Role> getAllRoles(Long userId){
 		List<Role> roleList = null;
-		session = HibernateUtils.getSessionFactory().openSession();
+		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		try{
 			tx=session.beginTransaction();
@@ -148,8 +128,8 @@ public class RoleManager {
 			tx.commit();
 		}catch(HibernateException e){
 			if(tx!=null) tx.rollback();
-			logger.error("db error occured while retrieving roles of user with id " + userId);
-			throw new LifeRolesDBException(e);
+			logger.error("db error occured while retrieving roles of user with id " + userId,e);
+			throw e;
 		}
 		finally {
 			session.close();
@@ -157,6 +137,4 @@ public class RoleManager {
 		logger.info("roles of user with id " + userId + " retrieved");
 		return roleList;
 	}
-	
-	
 }

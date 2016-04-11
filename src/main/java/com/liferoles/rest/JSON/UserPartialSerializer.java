@@ -13,8 +13,7 @@ public class UserPartialSerializer extends JsonSerializer<User> {
 		jgen.writeStartObject();
 		jgen.writeNumberField("id", value.getId());
 		jgen.writeStringField("email", value.getEmail());
-		jgen.writeStringField("language", value.getLanguage().toString());
-		jgen.writeStringField("personalMission", value.getPersonalMission());
+		jgen.writeNumberField("firstDayOfWeek", value.getFirstDayOfWeek().ordinal());
         jgen.writeEndObject();
     }
 }

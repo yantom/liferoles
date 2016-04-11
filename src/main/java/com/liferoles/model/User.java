@@ -33,13 +33,12 @@ import com.liferoles.rest.JSON.UserPartialSerializer;
 @JsonDeserialize(using = UserPartialDeserializer.class)
 public class User implements Serializable{
     
-	@SequenceGenerator(name="user_id", sequenceName="appuser_id_seq")
+	@SequenceGenerator(name="user_id", sequenceName="appuser_id_seq",allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_id")
 	@Id
 	private Long id;
     private String email;
-    private String personalMission;
-    private Language language;
+    private Day firstDayOfWeek;
     @JsonIgnore
     private String password;
     @JsonIgnore
@@ -56,12 +55,6 @@ public class User implements Serializable{
 	}
 	public void setEmail(String email) {
 		this.email = email;
-	}
-	public String getPersonalMission() {
-		return personalMission;
-	}
-	public void setPersonalMission(String personalMission) {
-		this.personalMission = personalMission;
 	}
 
 	@Override
@@ -88,6 +81,11 @@ public class User implements Serializable{
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString(){
+		return "user with email: " + email;
+	}
 
 	public String getPassword() {
 		return password;
@@ -104,11 +102,11 @@ public class User implements Serializable{
 	public void setSalt(String salt) {
 		this.salt = salt;
 	}
-	public Language getLanguage() {
-		return language;
+	public Day getFirstDayOfWeek() {
+		return firstDayOfWeek;
 	}
-	public void setLanguage(Language language) {
-		this.language = language;
+	public void setFirstDayOfWeek(Day firstDayOfWeek) {
+		this.firstDayOfWeek = firstDayOfWeek;
 	}
 	
 }

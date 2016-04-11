@@ -3,10 +3,8 @@ package com.liferoles;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
-import com.liferoles.controller.RoleManager;
-import com.liferoles.controller.TaskManager;
-import com.liferoles.controller.UserManager;
+import com.liferoles.exceptions.LifeRolesException;
+import com.liferoles.utils.AuthUtils;
 import com.liferoles.utils.HibernateUtils;
 
 public class StartListener implements ServletContextListener{
@@ -18,9 +16,11 @@ public class StartListener implements ServletContextListener{
 	@Override
 	public void contextInitialized(ServletContextEvent ev) {
 		ServletContext servletContext = ev.getServletContext();
+		
 		try {
+			AuthUtils.setHashKey();
 			HibernateUtils.buildSessionFactory(true);
-		} catch (LifeRolesDBException e) {
+		} catch (LifeRolesException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

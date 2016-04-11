@@ -18,6 +18,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.liferoles.rest.JSON.LocalDateDeserializer;
@@ -62,7 +63,7 @@ public class Task implements Serializable{
 		return true;
 	}
 
-	@SequenceGenerator(name="task_id", sequenceName="task_id_seq")
+	@SequenceGenerator(name="task_id", sequenceName="task_id_seq",allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="task_id")
 	@Id
     private Long id;

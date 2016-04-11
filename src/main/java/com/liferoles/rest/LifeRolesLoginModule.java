@@ -1,34 +1,22 @@
 package com.liferoles.rest;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.security.auth.login.FailedLoginException;
-import javax.security.auth.login.LoginException;
-import javax.sql.DataSource;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.jboss.security.auth.spi.DatabaseServerLoginModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.liferoles.LifeRolesDBException;
-import com.liferoles.LifeRolesException;
+import com.liferoles.exceptions.LifeRolesException;
 import com.liferoles.utils.AuthUtils;
 import com.liferoles.utils.HibernateUtils;
 
 public class LifeRolesLoginModule extends DatabaseServerLoginModule {
-	
+	private static final Logger logger = LoggerFactory.getLogger(DatabaseServerLoginModule.class);
 	@Override
 	public String createPasswordHash(String username, String password, String digestOption)
 	   {
-		if(password.length()==128)
-			return password;
 		Session session = HibernateUtils.getSessionFactory().openSession();
 		Transaction tx = null;
 		String salt = null;
@@ -40,6 +28,7 @@ public class LifeRolesLoginModule extends DatabaseServerLoginModule {
 			tx.commit();
 		}catch(HibernateException e){
 			if(tx!=null) tx.rollback();
+			logger.error("wtf", e);
 			throw new SecurityException("unable to authenticate user - can not retrieve salt",e);
 		}
 		finally {

@@ -1,0 +1,9 @@
+<ion-popover-view style='height:300px; margin-top:20px;'>
+	<ion-content>
+		<ion-list>
+			<ion-item ng-repeat='rolefromlist in roles' ng-if='rolefromlist.id != role.id' ng-click='data.newRoleId = rolefromlist.id;popover.hide();'>
+				{{rolefromlist.name}}
+			</ion-item>
+		</ion-list>
+	</ion-content>
+</ion-popover-view>

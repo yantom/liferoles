@@ -7,7 +7,7 @@ public class BooleanResponse {
 	public BooleanResponse(boolean response){
 		this.response = response;
 	}
-	public boolean isResponse() {
+	public boolean getResponse() {
 		return response;
 	}
 
