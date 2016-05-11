@@ -1,7 +1,7 @@
 //FILE SHARED BETWEEN PLATFORMS
 angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,$http, $stateParams,TasksAndRoles, $ionicPopup, $state, $ionicPopover){
 	$scope.roles = TasksAndRoles.getRoles();
-	$scope.$on('dataReLoaded', function () {
+	$rootScope.$on('dataReLoaded', function () {
 		$scope.roles = TasksAndRoles.getRoles();
 	});
 	$scope.data = {newRoleId:null}
@@ -28,10 +28,18 @@ angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,
 		}
 	}
 	//
+	$scope.removeGoalFromView = function($index){
+		$scope.role.goals.splice($index,1);
+	}
+	$scope.createNewGoal = function(){
+		$scope.role.goals.unshift({name:"",finished:false});
+	}
+	
 	$scope.updateRole = function(){
-		if($scope.role.name == null || (/\s/.test($scope.role.name)))
+		if($scope.role.name == null || (!(/\S/.test($scope.role.name)))){
 			return;
-		if($stateParams.roleId != null){
+		}
+		if($scope.role.id != null){
 			$http.put(host+"/rest/roles/"+platform,$scope.role).then(
 				function(){
 					TasksAndRoles.updateRole($scope.role);

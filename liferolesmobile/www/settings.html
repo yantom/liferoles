@@ -1,12 +1,15 @@
 <ion-header-bar align-title="center" class="bar-light">
 <a class="button button-icon icon ion-navicon" ng-click="leaveSettings();openMenu()"></a>
   		<h1 class="title">Settings</h1>
-<a class="button button-icon ion-power" ng-click="logout()">Logout</a>
+		<a class="button button-icon ion-power" ng-click="logout()">Logout</a>
 </ion-header-bar>
+<div style="background-color:#BBBBBB; color:red;" class="temp-message" ng-show="noInternet">No internet connection.</div>
+<div style="background-color:green; color:white;" class="temp-message" ng-show="refreshing">Refreshing tasks and roles.</div>
 <div style="margin:0 auto; margin-top:44px;" id="popover-beam"></div>
 <ion-content>
 <div style="margin-left: 15px; margin-top: 10px;">
 <h4 style="color:green;">{{viewData.email}}</h4>
+<button class="button icon-left ion-refresh" ng-click="refresh()">Refresh data</button>
 <div style="margin-top: 10px;">
 <button class="button" ng-click="hidePasswdEdit();emailData.editingEmail=true">Change email</button>
 <div ng-show="emailData.editingEmail">

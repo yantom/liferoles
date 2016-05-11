@@ -1,4 +1,4 @@
-package com.liferoles.rest;
+package com.liferoles.rest.exceptionmappers;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

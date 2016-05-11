@@ -233,8 +233,9 @@ angular.module('liferolesApp').factory('TasksAndRoles',function($rootScope,$http
 			 if(id == null)
 				 return {
 							name:null,
-							roleGoal:null,
+							goals:[],
 							id:null,
+							user:{id:null}
 						}
 			 for(var i = 0; i< rolesList.length; i++){
 				 if (rolesList[i].id == id){

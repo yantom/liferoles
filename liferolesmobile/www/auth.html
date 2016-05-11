@@ -1,16 +1,15 @@
+	<div style="background-color:#BBBBBB; color:red;" class="temp-message" ng-show="noInternet">No internet connection.</div>
 	<ion-content>
 	<img src="logoW.png" id="logo" width="70%"/>
 <div class="buttons" style="padding: 15px 10px 0px 10px;">
 <button class="authButton button" ng-click="setActive(0)" ng-class="{'activeItem' : authActiveItem == 0}">
 <h3>Login</h3>
 </button>
-
 <button class="authButton button" ng-click="setActive(1)" ng-class="{'activeItem' : authActiveItem == 1}">
 <h3>Register</h3>
 </button>
 </div>
 <div class="list list-inset" ng-show="authActiveItem==0">
-
 <form>
   <label class="item item-input">
     <input type="email" placeholder="Email" ng-model="data.email">

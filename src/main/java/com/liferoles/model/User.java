@@ -19,8 +19,8 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.liferoles.rest.JSON.UserPartialDeserializer;
-import com.liferoles.rest.JSON.UserPartialSerializer;
+import com.liferoles.rest.JSON.serializers.UserPartialDeserializer;
+import com.liferoles.rest.JSON.serializers.UserPartialSerializer;
 
 
 /**
@@ -39,6 +39,7 @@ public class User implements Serializable{
 	private Long id;
     private String email;
     private Day firstDayOfWeek;
+    private String personalMission;
     @JsonIgnore
     private String password;
     @JsonIgnore
@@ -107,6 +108,12 @@ public class User implements Serializable{
 	}
 	public void setFirstDayOfWeek(Day firstDayOfWeek) {
 		this.firstDayOfWeek = firstDayOfWeek;
+	}
+	public String getPersonalMission() {
+		return personalMission;
+	}
+	public void setPersonalMission(String personalMission) {
+		this.personalMission = personalMission;
 	}
 	
 }

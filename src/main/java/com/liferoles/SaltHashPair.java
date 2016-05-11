@@ -1,4 +1,4 @@
-package com.liferoles.utils;
+package com.liferoles;
 
 public class SaltHashPair {
 	private String salt;

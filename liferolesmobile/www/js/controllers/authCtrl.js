@@ -1,5 +1,5 @@
 //FILE IS SHARED BETWEEN PLATFORMS
-angular.module(authCtrlModule).controller("authCtrl",function($scope,$injector,$http,$state,$location,$ionicPopover){
+angular.module(authCtrlModule).controller("authCtrl",function($scope,$injector,$http,$state,$location,$ionicPopover,$rootScope){
 	if ($injector.has('TasksAndRoles'))
 		var TasksAndRoles = $injector.get('TasksAndRoles');
 	if ($injector.has('vcRecaptchaService'))
@@ -138,7 +138,7 @@ angular.module(authCtrlModule).controller("authCtrl",function($scope,$injector,$
 					$scope.data.email="";
 					return;
 				}
-					$scope.user = response.data.user;
+					$rootScope.user = response.data.user;
 					localStorage.setItem("jwt", response.data.token);
 					var date = new Date();
 			    	if((date.getDay()+6)%7 >= $scope.user.firstDayOfWeek)
@@ -146,7 +146,7 @@ angular.module(authCtrlModule).controller("authCtrl",function($scope,$injector,$
 			    	else
 			    		date.setTime(date.getTime() - (((date.getDay()+6)%7)-$scope.user.firstDayOfWeek+7)*86400000);
 			    	date.setHours(0, 0, 0, 0);
-			    	$scope.firstDayOfCurrentWeekDate = date;
+			    	$rootScope.firstDayOfCurrentWeekDate = date;
 			    	TasksAndRoles.init(true);
 			    	resetData();
 			},function(response){
@@ -222,6 +222,7 @@ angular.module(authCtrlModule).controller("authCtrl",function($scope,$injector,$
 				resetCode = params.c;
 				showResetPopover2();
 			}
+			//$location.path('/auth.html');
 			$scope.$apply();
 	    });
 	}

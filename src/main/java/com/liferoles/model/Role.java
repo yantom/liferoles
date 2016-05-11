@@ -6,19 +6,23 @@
 package com.liferoles.model;
 
 import java.io.Serializable;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.liferoles.rest.JSON.UserIdDeserializer;
-import com.liferoles.rest.JSON.UserIdSerializer;
+import com.liferoles.rest.JSON.serializers.UserIdDeserializer;
+import com.liferoles.rest.JSON.serializers.UserIdSerializer;
 
 /**
  *
@@ -33,10 +37,11 @@ public class Role implements Serializable{
 	private Long id;
     private String name;
     
-    private String roleGoal;
+    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER, orphanRemoval=true)
+    @JoinColumn(name="role_id")
+    private List<RoleGoal> goals;
     
-    
-    @ManyToOne
+	@ManyToOne
     @JsonSerialize(using = UserIdSerializer.class)
     @JsonDeserialize(using = UserIdDeserializer.class)
     @JoinColumn(name="appuser_id")
@@ -47,6 +52,12 @@ public class Role implements Serializable{
 	}
 	public void setId(Long id) {
 		this.id = id;
+	}
+	public List<RoleGoal> getGoals() {
+		return goals;
+	}
+	public void setGoals(List<RoleGoal> goals) {
+		this.goals = goals;
 	}
 	public String getName() {
 		return name;
@@ -92,11 +103,4 @@ public class Role implements Serializable{
 		return true;
 	}
 
-	public String getRoleGoal() {
-		return roleGoal;
-	}
-
-	public void setRoleGoal(String roleGoal) {
-		this.roleGoal = roleGoal;
-	}
 }

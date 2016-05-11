@@ -1,9 +1,10 @@
 //FILE SHARED BETWEEN PLATFORMS
-angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$ionicPopover,$ionicPopup,TasksAndRoles,$window,$ionicSideMenuDelegate){
+angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$ionicPopover,$ionicPopup,TasksAndRoles,$window,$ionicSideMenuDelegate,$timeout,$state,$ionicHistory){
 	$scope.passwdData = {password:"",newPassword:"",newPassword2:"",errMsg:"",editingEmail:false}
 	$scope.emailData = {password:"",newEmail:"",errMsg:"",editingPassword :false}
 	$scope.viewData = {email:$scope.user.email,newFirstDay:null}
 	$scope.popover;
+	$scope.refreshing = false;
 	$ionicPopover.fromTemplateUrl('daysPopover.html',{scope:$scope}).then(function(popover) {
 	    $scope.popover = popover;
 	  });
@@ -13,15 +14,25 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 	$scope.hidePasswdEdit = function(){
 		$scope.passwdData = {password:"",newPassword:"",newPassword2:"",errMsg:"",editingEmail:false}
 	}
+	
+	$scope.refresh = function(){
+		TasksAndRoles.init();
+		$scope.refreshing = true;
+		$timeout(function(){
+			$scope.refreshing = false;
+			}, 2000);
+	}
 	//PLATFORM SPECIFIC
 	if(platform=="m"){
 		$scope.logout = function(){
-			localStorage.removeItem("jwt");
-			$timeout(function(){
-				$ionicHistory.clearHistory();
-				$ionicHistory.clearCache();
-				}, 500);
-			$state.go("auth");
+			$http.get(host + "/rest/users/m/logout").then(function(){
+				localStorage.removeItem("jwt");
+				$timeout(function(){$ionicHistory.clearHistory();$ionicHistory.clearCache();}, 500);
+				$state.go("auth");
+			},
+			function(response){
+				$scope.handleErrors(response);
+			});
 		};
 	}
 	else{
@@ -68,13 +79,15 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 		$http.post(host + "/rest/users/"+platform+"/checkPassword",{password:$scope.emailData.password}).then(
 			function(response){
 				if (response.data.response == true){
-					$http.put(host + "/rest/users/"+platform,{email:$scope.emailData.newEmail}).then(
+					var oldMail = $scope.user.email;
+					$scope.user.email = $scope.emailData.newEmail;
+					$http.put(host + "/rest/users/"+platform,$scope.user).then(
 					function(){
-						$scope.user.email = $scope.emailData.newEmail;
 						$scope.viewData.email = $scope.emailData.newEmail;
 						$scope.hideEmailEdit();
 					},
 					function(response){
+						$scope.user.email = oldMail;
 						$scope.handleErrors(response);
 						$scope.hideEmailEdit();
 					});
@@ -132,9 +145,10 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 		$scope.popover.show(document.getElementById("popover-beam"));
 		var stopListenHidden = $scope.$on('popover.hidden', function(){
 			if($scope.viewData.newFirstDay != null && $scope.viewData.newFirstDay != $scope.user.firstDayOfWeek){
-				$http.put(host + "/rest/users/"+platform,{firstDayOfWeek:$scope.viewData.newFirstDay}).then(
+				var oldFirstDay = $scope.user.firstDayOfWeek;
+				$scope.user.firstDayOfWeek = $scope.viewData.newFirstDay;
+				$http.put(host + "/rest/users/"+platform,$scope.user).then(
 				function(){
-					$scope.user.firstDayOfWeek = $scope.viewData.newFirstDay;
 					var date = new Date();
 			    	if((date.getDay()+6)%7 >= $scope.user.firstDayOfWeek)
 			    		date.setTime(date.getTime() - (((date.getDay()+6)%7)-$scope.user.firstDayOfWeek)*86400000);
@@ -146,6 +160,7 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 					$scope.viewData.newFirstDay = null;
 				},
 				function(response){
+					$scope.user.firstDayOfWeek = oldFirstDay;
 					$scope.handleErrors(response);
 					$scope.viewData.newFirstDay = null;
 				});

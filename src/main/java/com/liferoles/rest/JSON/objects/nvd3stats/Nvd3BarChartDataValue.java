@@ -1,6 +1,6 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.objects.nvd3stats;
 
-public class BarChartDataValue {
+public class Nvd3BarChartDataValue {
 	@Override
 	public String toString() {
 		return "BarChartDataValue [x=" + x + ", y=" + y + "]";
@@ -8,9 +8,9 @@ public class BarChartDataValue {
 	private String x;
 	private int y;
 	
-	public BarChartDataValue(){}
+	public Nvd3BarChartDataValue(){}
 	
-	public BarChartDataValue(String x, int y){
+	public Nvd3BarChartDataValue(String x, int y){
 		this.x=x;
 		this.y=y;
 	}

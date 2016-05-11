@@ -1,4 +1,4 @@
-package com.liferoles.utils;
+package com.liferoles.controller;
 
 import java.io.BufferedInputStream;
 
@@ -10,15 +10,16 @@ import java.time.LocalDateTime;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liferoles.SaltHashPair;
 import com.liferoles.exceptions.LifeRolesAuthException;
 import com.liferoles.exceptions.TokenValidationException;
 import com.liferoles.model.User;
@@ -30,60 +31,36 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.util.Base64;
 import java.util.List;
 
-
-public class AuthUtils {
+@Stateless
+@LocalBean
+public class AuthManager {
+	
+	@PersistenceContext(unitName = "Liferoles")
+	EntityManager em;
 	
 	private static byte[] hashKey = new byte[64];
 	//private static Cipher encryptCipher;
 	//private static Cipher decryptCipher;
-	private static final Logger logger = LoggerFactory.getLogger(AuthUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(AuthManager.class);
 	
 	public static void setHashKey() throws LifeRolesAuthException{
-		try (BufferedInputStream bis = new BufferedInputStream(AuthUtils.class.getClassLoader().getResourceAsStream("hashkey"))){
+		try (BufferedInputStream bis = new BufferedInputStream(AuthManager.class.getClassLoader().getResourceAsStream("hashkey"))){
 			bis.read(hashKey);
 		} catch (IOException e) {
 			logger.error("wtf",e);
 			throw new LifeRolesAuthException("unable to create hashkey",e);
 		}
 	}
-	/*
-	public static void setCiphersKeys() throws LifeRolesAuthException{
-		byte[] dataKey = new byte[16];
-		try (BufferedInputStream bis = new BufferedInputStream(AuthUtils.class.getClassLoader().getResourceAsStream("datakey"))){
-			bis.read(dataKey);
-		} catch (IOException e) {
-			throw new LifeRolesAuthException("unable to read datakey",e);
-		}
-		Key key = new SecretKeySpec(dataKey, "AES");
-		try{
-		decryptCipher = Cipher.getInstance("AES");
-		decryptCipher.init(Cipher.DECRYPT_MODE, key);
-		encryptCipher = Cipher.getInstance("AES");
-		encryptCipher.init(Cipher.ENCRYPT_MODE, key);
-		}
-		catch(Exception e){
-			e.printStackTrace();
-			throw new LifeRolesAuthException(e);
-		}
-	}*/
 	
-	public static String issueNewToken(Long userId) throws LifeRolesAuthException{
-		Transaction tx = null;
+	public String issueNewToken(Long userId) throws LifeRolesAuthException{
 		Long jit = null;
-		Session session= HibernateUtils.getSessionFactory().openSession();
 		try{
-			tx=session.beginTransaction();
-			SQLQuery query = session.createSQLQuery("insert into tokens (appuser_id) values(:userId) returning jit");
-			query.setLong("userId", userId);
-			jit = ((java.math.BigInteger) query.uniqueResult()).longValue();
-			tx.commit();
-		}catch(HibernateException ex){
-			if(tx!=null) tx.rollback();
+			Query query = em.createNativeQuery("insert into tokens (appuser_id) values(:userId) returning jit");
+			query.setParameter("userId", userId);
+			jit = ((java.math.BigInteger) query.getSingleResult()).longValue();
+		}catch(Exception ex){
 			logger.error("error while insetring token for user with id" +userId,ex);
-			throw ex;
-		}finally {
-			session.close();
-		}
+			throw ex;}
 		return Jwts.builder().setSubject(userId.toString()).setId(jit.toString()).signWith(SignatureAlgorithm.HS256,hashKey).compact();
 	}
 	/**
@@ -93,7 +70,7 @@ public class AuthUtils {
 	 * @throws LifeRolesDBException
 	 * @throws TokenValidationException	if token is invalid
 	 */
-	public static Long validateToken(String token) throws TokenValidationException{
+	public Long validateToken(String token) throws TokenValidationException{
 		Long userId;
 		Long jit;
 		try{
@@ -105,50 +82,54 @@ public class AuthUtils {
 			logger.info("token validation failed - token: " + token);
 			throw new TokenValidationException("token validation failed",ex);
 		}
-		finally{
-			
-		}
-		Transaction tx = null;
-		Session session= HibernateUtils.getSessionFactory().openSession();
 		try{
-			tx=session.beginTransaction();
-			SQLQuery query = session.createSQLQuery("select blacklist from tokens where jit = :jit");
-			query.setLong("jit", jit);
-			Object obj  = query.uniqueResult();
+			Query query = em.createNativeQuery("select blacklist from tokens where jit = :jit");
+			query.setParameter("jit", jit);
+			Object obj  = query.getSingleResult();
 			if(obj == null){
 				throw new TokenValidationException("JIT was not found in DB");
 			}
 			if((Boolean)obj == true){
-				tx.commit();
 				logger.info("blocked access from blacklisted JIT - " + jit);
 				throw new TokenValidationException("JIT is in blacklist");
 				}
-		}catch(HibernateException e){
-			if(tx!=null) tx.rollback();
+		}catch(Exception e){
 			logger.error("problem occurred when checking JIT blacklist table",e);
 			throw e;
-		}finally {
-			session.close();
 		}
 		return userId;
 	}
 	
-	public static void addTokensToBlacklist(Long userId){
-		Transaction tx = null;
-		Session session= HibernateUtils.getSessionFactory().openSession();
+	public void logoutMobileUser(String token) throws TokenValidationException{
+		Long jit;
 		try{
-			tx=session.beginTransaction();
-			SQLQuery query = session.createSQLQuery("update tokens set blacklist=true where appuser_id = :userId");
-			query.setLong("userId", userId);
+			Claims body = Jwts.parser().setSigningKey(hashKey).parseClaimsJws(token).getBody();
+			jit = Long.parseLong(body.getId());
+			}
+		catch(Exception ex){
+			logger.info("logout of mobile user failed - token: " + token);
+			throw new TokenValidationException("logout of mobile user failed",ex);
+		}
+		
+		try{
+			Query query = em.createNativeQuery("update tokens set blacklist=true where jit = :jit");
+			query.setParameter("jit", jit);
+			query.executeUpdate();
+		}catch(Exception e){
+			logger.error("problem occurred when updating blacklist of the token during user logout, JIT: " + jit,e);
+			throw e;
+		}
+	}
+	
+	public void addTokensToBlacklist(Long userId){
+		try{
+			Query query = em.createNativeQuery("update tokens set blacklist=true where appuser_id = :userId");
+			query.setParameter("userId", userId);
 			int i = query.executeUpdate();
-			tx.commit();
 			logger.info(i + " tokens of user with id " + userId + " blacklisted");
-		}catch(HibernateException e){
-			if(tx!=null) tx.rollback();
+		}catch(Exception e){
 			logger.error("problem occurred when trying to add tokens of user " + userId + " to blacklist",e);
 			throw e;
-		}finally {
-			session.close();
 		}
 	}
 	
@@ -222,23 +203,15 @@ public class AuthUtils {
 	 * @throws LifeRolesDBException
 	 * @throws LifeRolesAuthException
 	 */
-	public static User authenticateMobileUser(User accessingUser) throws LifeRolesAuthException{
-		Session session= HibernateUtils.getSessionFactory().openSession();
-		Transaction tx = null;
+	public User authenticateMobileUser(User accessingUser) throws LifeRolesAuthException{
 		User dbUser = null;
 		try{
-			tx=session.beginTransaction();
-			Query query = session.createQuery("from User where email = :email");
-			query.setString("email", accessingUser.getEmail());
-			dbUser = (User) query.uniqueResult();
-			tx.commit();
-		}catch(HibernateException ex){
-			if(tx!=null) tx.rollback();
+			Query query = em.createQuery("from User where email = :email");
+			query.setParameter("email", accessingUser.getEmail());
+			dbUser = (User) query.getSingleResult();
+		}catch(Exception ex){
 			logger.error("error occurred when retrieving user with email " + accessingUser.getEmail(),ex);
 			throw ex;
-		}finally{
-			session.close();
-			session=null;
 		}
 		if(dbUser == null){
 			logger.info("authentication failed - no user with email " + accessingUser.getEmail() + " found in db");
@@ -253,52 +226,38 @@ public class AuthUtils {
 		return dbUser;
 	}
 	
-	public static void useResetToken(String resetToken,User u) throws LifeRolesAuthException, TokenValidationException{
-		String tokenHash = AuthUtils.computeHash(resetToken, u.getEmail()).getHash();
-		Transaction tx = null;
-		Session session= HibernateUtils.getSessionFactory().openSession();
+	public void useResetToken(String resetToken,User u) throws LifeRolesAuthException, TokenValidationException{
+		String tokenHash = computeHash(resetToken, u.getEmail()).getHash();
 		try{
-			tx=session.beginTransaction();
-			SQLQuery query = session.createSQLQuery("update passwordreset set used = true where tokenhash = :tokenHash and appuser_id = :userId and used = false and expirationdate > :dateNow");
-			query.setLong("userId", u.getId());
+			Query query = em.createNativeQuery("update passwordreset set used = true where tokenhash = :tokenHash and appuser_id = :userId and used = false and expirationdate > :dateNow");
+			query.setParameter("userId", u.getId());
 			query.setParameter("dateNow", LocalDateTime.now());
-			query.setString("tokenHash", tokenHash);
+			query.setParameter("tokenHash", tokenHash);
 			int i = query.executeUpdate();
 			if( i!= 1){
-				if(tx!=null) tx.rollback();
+				em.getTransaction().rollback();
 				throw new TokenValidationException("token expired, used or don't exists for this user");
 			}
-			tx.commit();
 			logger.info(i + "token " + tokenHash + " used");
-		}catch(HibernateException e){
-			if(tx!=null) tx.rollback();
+		}catch(Exception e){
 			logger.error("problem occurred when trying to use token " + tokenHash + " of user " + u.getId(),e);
 			throw e;
-		}finally {
-			session.close();
 		}
 	}
 	
-	public static boolean checkPassword(String password, Long userId) throws LifeRolesAuthException{
-		Session session= HibernateUtils.getSessionFactory().openSession();
-		Transaction tx = null;
+	public boolean checkPassword(String password, Long userId) throws LifeRolesAuthException{
 		String dbHash;
 		String salt;
 		try{
-			tx=session.beginTransaction();
-			Query query = session.createQuery("select password, salt from User where id = :id");
-			query.setLong("id", userId);
-			List<Object[]> l = query.list();
+			Query query = em.createQuery("select password, salt from User where id = :id");
+			query.setParameter("id", userId);
+			@SuppressWarnings("unchecked")
+			List<Object[]> l = query.getResultList();
 			dbHash = (String)l.get(0)[0];
 			salt = (String)l.get(0)[1];
-			tx.commit();
-		}catch(HibernateException ex){
-			if(tx!=null) tx.rollback();
+		}catch(Exception ex){
 			logger.error("error occurred when retrieving user with id " + userId,ex);
 			throw ex;
-		}finally{
-			session.close();
-			session=null;
 		}
 		String accessingUserHash = computeHash(password, salt).getHash();
 		if (!accessingUserHash.equals(dbHash)){
@@ -308,27 +267,4 @@ public class AuthUtils {
 		logger.info("authentication succes - user with id " + userId);
 		return true;
 	}
-	/*
-	public static byte[] encryptString(String input) throws LifeRolesAuthException{
-		byte[] output;
-		try {
-			output = encryptCipher.doFinal(input.getBytes());
-		} catch (IllegalBlockSizeException | BadPaddingException e) {
-			e.printStackTrace();
-			throw new LifeRolesAuthException(e);
-		}
-		return output;
-	}
-	
-	public static String decryptString(byte[] input) throws LifeRolesAuthException{
-		String output;
-		try {
-			output = new String(decryptCipher.doFinal(input));
-		} catch (IllegalBlockSizeException | BadPaddingException e) {
-			e.printStackTrace();
-			throw new LifeRolesAuthException(e);
-		}
-		return output;
-	}*/
-	
 }

@@ -9,6 +9,7 @@
     <link href="lib/nvd3/nv.d3.min.css" rel="stylesheet">
     <link href="lib/animate.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+	<link href="css/M-style.css" rel="stylesheet">
     <script src="lib/ionic/js/ionic.bundle.js"></script>
     <script src="lib/ionic/js/angular/angular-resource.min.js"></script>
 	<script src="js/M-config.js"></script>
@@ -16,6 +17,7 @@
     <script src="js/tasksAndRolesFactory.js"></script>
 	<script src="js/misc.js"></script>
 	<script src="js/controllers/authCtrl.js"></script>
+	<script src="js/controllers/pmCtrl.js"></script>
 	<script src="js/controllers/tasksCtrl.js"></script>
     <script src="js/controllers/statsCtrl.js"></script>
 	<script src="js/controllers/settingsCtrl.js"></script>
@@ -25,7 +27,7 @@
     <script src="lib/d3.min.js"></script>
     <script src="lib/nvd3/nv.d3.min.js"></script>
     <script src="lib/angular-jwt.min.js"></script>
-    <script src="lib/M-ngDraggable.js"></script>
+    <script src="lib/ngDraggable.js"></script>
     <!-- mobile only -->
     <script src="lib/ng-cordova.min.js"></script>
     <script src="cordova.js"></script>
@@ -35,7 +37,11 @@
   <ion-side-menu side="left">
   <ion-header-bar>
 </ion-header-bar>
-  <ion-content> 
+  <ion-content>
+  <ion-item class="item item-icon-left" menu-close ui-sref="pm">
+    <i style="color:green;" class="icon ion-leaf"></i>
+  	My mission
+    </ion-item>
     <ion-item class="item item-icon-left" menu-close ui-sref="roles">
     <i class="icon ion-ios-people"></i>
   	Roles

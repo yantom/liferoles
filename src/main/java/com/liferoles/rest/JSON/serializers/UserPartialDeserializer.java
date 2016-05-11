@@ -1,4 +1,4 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.serializers;
 
 import java.io.IOException;
 
@@ -34,6 +34,12 @@ public class UserPartialDeserializer extends JsonDeserializer<User> {
 			u.setPassword(null);
 		else
 			u.setPassword(node.asText());
+		
+		node = mainNode.get("personalMission");
+		if(node == null)
+			u.setPersonalMission(null);
+		else
+			u.setPersonalMission(node.asText());
 		
 		node = mainNode.get("firstDayOfWeek");
 		if(node == null)

@@ -1,0 +1,15 @@
+<ion-header-bar align-title="center" class="bar-light">
+<a class="button button-icon icon ion-navicon" ng-click="openMenu()"></a>
+  		<h1 class="title">My Mission</h1>
+</ion-header-bar>
+<ion-content id="content">
+	<div class="card pm-card">
+  <div class="item item-divider">
+	My personal mission
+  </div>
+  <div class="item item-text-wrap">
+    <textarea id="txtarea" onkeyup="textAreaAdjust(this)" style="min-height:180px;" placeholder="What is your personal mission? What is important for you? How will you play your roles? What will you focus on to become successful in your life? Personal mission should motivate you. Feel free to update it, if you find that you miss something or something is no longer relevant." ng-model="user.personalMission"></textarea>
+  </div>
+</div>
+<button style="margin-left:10px;" class="button" ng-click="update();">Save changes</button>
+</ion-content>

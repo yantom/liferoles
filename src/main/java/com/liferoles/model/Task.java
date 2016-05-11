@@ -21,14 +21,14 @@ import javax.persistence.SequenceGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.liferoles.rest.JSON.LocalDateDeserializer;
-import com.liferoles.rest.JSON.LocalDateSerializer;
-import com.liferoles.rest.JSON.LocalTimeDeserializer;
-import com.liferoles.rest.JSON.LocalTimeSerializer;
-import com.liferoles.rest.JSON.RolePartialDeserializer;
-import com.liferoles.rest.JSON.RolePartialSerializer;
-import com.liferoles.rest.JSON.UserIdDeserializer;
-import com.liferoles.rest.JSON.UserIdSerializer;
+import com.liferoles.rest.JSON.serializers.LocalDateDeserializer;
+import com.liferoles.rest.JSON.serializers.LocalDateSerializer;
+import com.liferoles.rest.JSON.serializers.LocalTimeDeserializer;
+import com.liferoles.rest.JSON.serializers.LocalTimeSerializer;
+import com.liferoles.rest.JSON.serializers.RolePartialDeserializer;
+import com.liferoles.rest.JSON.serializers.RolePartialSerializer;
+import com.liferoles.rest.JSON.serializers.UserIdDeserializer;
+import com.liferoles.rest.JSON.serializers.UserIdSerializer;
 
 
 /**

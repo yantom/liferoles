@@ -1,12 +1,12 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.objects.nvd3stats;
 
-public class PieChartDataItem {
+public class Nvd3PieChartDataItem {
 	private String key;
 	private int y;
 	
-	public PieChartDataItem(){}
+	public Nvd3PieChartDataItem(){}
 	
-	public PieChartDataItem(String key, int y){
+	public Nvd3PieChartDataItem(String key, int y){
 		this.key=key;
 		this.y=y;
 	}

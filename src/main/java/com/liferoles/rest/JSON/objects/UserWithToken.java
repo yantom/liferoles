@@ -1,4 +1,4 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.objects;
 
 import com.liferoles.model.User;
 

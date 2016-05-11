@@ -1,26 +1,26 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.objects.nvd3stats;
 
 import java.util.List;
 
-public class BarChartDataItem {
+public class Nvd3BarChartDataItem {
 	@Override
 	public String toString() {
 		return "BarChartDataItem [key=" + key + ", values=" + values + "]";
 	}
 	private String key;
-	private List<BarChartDataValue> values;
+	private List<Nvd3BarChartDataValue> values;
 	
-	public BarChartDataItem(){}
+	public Nvd3BarChartDataItem(){}
 	
-	public BarChartDataItem(String key, List<BarChartDataValue> values){
+	public Nvd3BarChartDataItem(String key, List<Nvd3BarChartDataValue> values){
 		this.key = key;
 		this.values = values;
 	}
 	
-	public List<BarChartDataValue> getValues() {
+	public List<Nvd3BarChartDataValue> getValues() {
 		return values;
 	}
-	public void setValues(List<BarChartDataValue> values) {
+	public void setValues(List<Nvd3BarChartDataValue> values) {
 		this.values = values;
 	}
 	public String getKey() {

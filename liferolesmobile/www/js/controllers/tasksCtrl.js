@@ -1,11 +1,20 @@
 //FILE SHARED BETWEEN PLATFORMS
-angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRoles,$ionicPopover,$http,$state,$timeout,$rootScope,$ionicScrollDelegate,$ionicModal,$ionicSideMenuDelegate){
+angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRoles, $interval,$ionicPopover,$http,$state,$timeout,$rootScope,$ionicScrollDelegate,$ionicModal,$ionicSideMenuDelegate,$ionicPlatform ){
 	//PLATFORM SPECIFIC
 	if(platform=="m"){
 		$scope.days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 		$scope.openMenu = function(){
 			$ionicSideMenuDelegate.toggleLeft();
 		}
+		var pausedDate = null;
+		$ionicPlatform.on("resume", function(){
+			if((Date.now())>(pausedDate + 600000))
+				$scope.refresh();
+		});
+		
+		$ionicPlatform.on("pause", function(){
+			pausedDate = Date.now();
+		});
 	}
 	else{
 		$scope.days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -13,6 +22,10 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 		$ionicModal.fromTemplateUrl('task.html', {}).then(function(modal) {
 		      taskModal = modal;
 		});
+		//refresh data every 5 minutes
+		$interval(function() {
+            $scope.refresh();
+          }, 300000);
 	}
 	//
 	//
@@ -29,9 +42,8 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 	//-2 is backlog, -1 week summary, 0-6 days of week
 	$scope.daysMenuActiveItem;
 	$scope.daysMenuActiveItemDate;
-	$scope.animate;
-	$scope.animateTitle;
-	$scope.refreshing = false;
+	$scope.animateWeek = null;
+	$scope.animateTitle = false;
 	$scope.popover;
 	$ionicPopover.fromTemplateUrl('rolesPopover.html',{scope:$scope}).then(function(popover) {$scope.popover = popover;});
 	$scope.dragData = {taskId : null};
@@ -39,13 +51,23 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 
 	var setData = function(){
 		$scope.roles = TasksAndRoles.getRoles();
-		$scope.currentIndex = 1;
+		//$scope.currentIndex = 1;
 		futureTasks = TasksAndRoles.getfutureTasks();
 		weeks = TasksAndRoles.getWeeks();
 		backlog = TasksAndRoles.getBacklog();
-		$scope.viewedTasks = weeks[$scope.currentIndex];
-		$scope.label = weeks[$scope.currentIndex].label;
-		$scope.setActive(-1);
+		//
+		if($scope.daysMenuActiveItem == -2)
+			$scope.viewedTasks = backlog;
+		else if($scope.currentIndex == -1)
+			$scope.viewedTasks = futureTasks;
+		else{
+			$scope.viewedTasks = weeks[$scope.currentIndex];
+			$scope.label = weeks[$scope.currentIndex].label;
+		}
+		//
+		//$scope.viewedTasks = weeks[$scope.currentIndex];
+		//$scope.label = weeks[$scope.currentIndex].label;
+		//$scope.setActive(-1);
 		computeTasksCounts();
 	}
 	
@@ -62,19 +84,15 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 		$scope.daysMenuActiveItem = num;
 		$scope.daysMenuActiveItemDate = computeDateByDaysMenuItem(num);
 		checkIfTaskCanBeCreated();
+		if(platform == "m")
+			$ionicScrollDelegate.$getByHandle('tasks').scrollTop(true);
 	}
-	
-	
-	
+
 	$scope.refresh = function(){
 		TasksAndRoles.init();
-		$scope.refreshing = true;
-		$timeout(function(){
-			$scope.refreshing = false;
-			}, 2000);
 	}
 	$scope.moveToBacklog = function(){
-		if (confirm("Move all uncompleted tasks to backlog?")){
+		if (confirm("Move all old, uncompleted tasks to backlog? (last week and older)")){
 			$http.put(host + "/rest/users/"+platform+"/backlog/" + $scope.firstDayOfCurrentWeekDate.getFullYear() + "/" + ($scope.firstDayOfCurrentWeekDate.getMonth()+1) +"/"+ $scope.firstDayOfCurrentWeekDate.getDate(),{}).then(
 					function(){
 						TasksAndRoles.moveTasksToBacklog();
@@ -169,16 +187,17 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 			}
 		}
 	}
-	$scope.$on('updateCounts',function(){
+	$rootScope.$on('updateCounts',function(){
 		computeTasksCounts();
 	});
 	$scope.goForward = function(){
 		if($scope.currentIndex == -1 || $scope.dragData.taskId !=null)
 			return;
-		$scope.animate = "slideInRight";
-		$scope.animateTitle="rotateIn";
-		$timeout(function(){$scope.animate = "";
-		$scope.animateTitle="";
+		$scope.animateWeek = "right";
+		$scope.animateTitle=true;
+		$timeout(function(){
+			$scope.animateWeek = null;
+			$scope.animateTitle=false;
 		},1000);
 		$scope.currentIndex--;
 		if($scope.currentIndex == -1){
@@ -195,10 +214,11 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 	$scope.goPast = function(){
 		if($scope.dragData.taskId !=null)
 			return;
-		$scope.animate = "slideInLeft";
-		$scope.animateTitle="rotateIn";
-		$timeout(function(){$scope.animate = "";
-		$scope.animateTitle="";
+		$scope.animateWeek = "left";
+		$scope.animateTitle=true;
+		$timeout(function(){
+			$scope.animateWeek = null;
+			$scope.animateTitle=false;
 		},1000);
 		$scope.currentIndex++;
 		if($scope.currentIndex == weeks.length){
@@ -227,17 +247,22 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 	}
 	
 	$scope.checkTask = function(task){
-		if(platform == "m" && task.finished == true){
-			$timeout(function(){
-				$ionicScrollDelegate.$getByHandle('tasks').scrollBottom(true);
-			},100);
-		}
-		$http.put(host+"/rest/tasks/"+platform,task).then(
+		$scope.animatedTaskId = task.id;
+		$timeout(function(){
+				$scope.animatedTaskId = null;
+				task.finished = !task.finished;
+				$http.put(host+"/rest/tasks/"+platform,task).then(
 			function(){},
 			function(response){
 				task.finished = !task.finished;
+				var tmp = $scope.viewedTasks.tasks;
+				$scope.viewedTasks.tasks = [];
+				$timeout(function(){
+					$scope.viewedTasks.tasks = tmp;
+				},1);
 				$scope.handleErrors(response);
 			});
+		},1000);	
 	}
 	
 	$scope.createNewTask = function($event){
@@ -357,10 +382,13 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 		};
 	};
 	
-	$scope.$on('dataReLoaded', function () {
+	$rootScope.$on('dataReLoaded', function () {
 		setData();
+		
 	});
 	var init = function(){
+		$scope.currentIndex = 1;
+		$scope.setActive(-1);
 		setData();
 	};
 	init();

@@ -2,8 +2,8 @@
   		<h1 class="title">Task</h1>
   		<a class="button icon-left ion-close-circled button-clear button-assertive" ng-hide="task.id==null" ng-click="deleteTask()" ui-sref="tasks">Delete</a>
 	</ion-header-bar>
+	<div style="background-color:#BBBBBB; color:red;" class="temp-message" ng-show="noInternet">No internet connection.</div>
 <ion-content>
-
 <label class="item item-input item-stacked-label">
     <span class="input-label">Name</span>
     <input type="text" ng-model="task.name">
@@ -14,18 +14,7 @@
       Role
     </div>
     <select ng-model="task.role" ng-options="role as role.name for role in roles track by role.id"></select>
-  </label>
-
-  <label class="item item-input" style="padding: 12px;">
-Finished
-<label class="toggle toggle-balanced" style="right: 0; position: absolute;">
-       <input type="checkbox" ng-model="task.finished">
-       <div class="track">
-         <div class="handle"></div>
-       </div>
-     </label>
-</label>
-  
+  </label> 
 <div ng-controller="dateCtrl" id="dateTime">
   <div>
   <span class="input-label">Date</span>

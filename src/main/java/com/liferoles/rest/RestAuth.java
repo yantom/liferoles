@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.regex.Pattern;
 
+import javax.ejb.EJB;
 import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,30 +21,33 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liferoles.controller.AuthManager;
 import com.liferoles.controller.UserManager;
 import com.liferoles.exceptions.LifeRolesAuthException;
 import com.liferoles.exceptions.LifeRolesException;
 import com.liferoles.exceptions.TokenValidationException;
 import com.liferoles.model.User;
-import com.liferoles.rest.JSON.BooleanResponse;
-import com.liferoles.rest.JSON.IdResponse;
-import com.liferoles.rest.JSON.UserWithToken;
-import com.liferoles.utils.AuthUtils;
+import com.liferoles.rest.JSON.objects.BooleanResponse;
+import com.liferoles.rest.JSON.objects.IdResponse;
+import com.liferoles.rest.JSON.objects.UserWithToken;
 
 @Path("/rest/auth")
 public class RestAuth {
-	private static final UserManager um = new UserManager();
-	private static final Logger logger = LoggerFactory.getLogger(AuthUtils.class);
+	@EJB
+	private UserManager um;
+	@EJB
+	private AuthManager am;
+	private static final Logger logger = LoggerFactory.getLogger(AuthManager.class);
 	@POST
     @Path("/m/login")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
     public UserWithToken loginJWT(User user) throws LifeRolesAuthException {
 		User dbUser;
-		dbUser = AuthUtils.authenticateMobileUser(user);
+		dbUser = am.authenticateMobileUser(user);
 		if(dbUser == null)
 			return null;
-		String token = AuthUtils.issueNewToken(dbUser.getId());
+		String token = am.issueNewToken(dbUser.getId());
 		return new UserWithToken(dbUser,token);
     }
 	
@@ -101,7 +105,7 @@ public class RestAuth {
 	@Path("/reset")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void resetUserPassword(UserWithToken u) throws LifeRolesAuthException, TokenValidationException{
-		AuthUtils.useResetToken(u.getToken(), u.getUser());
+		am.useResetToken(u.getToken(), u.getUser());
 		um.updateUserPassword(u.getUser());
 	}
 	

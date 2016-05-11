@@ -1,4 +1,4 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.serializers;
 
 import java.io.IOException;
 import java.time.LocalDate;

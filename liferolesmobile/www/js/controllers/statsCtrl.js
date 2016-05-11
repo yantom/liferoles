@@ -4,14 +4,17 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
 	var chartsData = [];
 	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 	var viewedMonth = date.getMonth()+1;
-	$scope.animate;
+	$scope.animateStats = null;
 	$scope.dataBarRole;
 	$scope.dataBarWeek;
 	$scope.dataPie;
+
 	$scope.$on('$ionicView.enter', function() {
+		if(typeof($scope.g1) !== 'undefined'){
 			$scope.g1.refresh();
 			$scope.g2.refresh();
 			$scope.g3.refresh();
+		}
 	});
 	$scope.viewedYear = date.getFullYear();
 	$scope.viewedMonthName = months[viewedMonth-1];
@@ -19,8 +22,8 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
 		if(monthsBeforeToday == 0)
 			return;
 		;
-		$scope.animate = "slideInRight";
-		$timeout(function(){$scope.animate = "";},500);
+		$scope.animateStats = "right";
+		$timeout(function(){$scope.animateStats = null;},500);
 		monthsBeforeToday--;
 		if(viewedMonth != 12)
 			viewedMonth++;
@@ -34,8 +37,8 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
 		$scope.dataPie = chartsData[monthsBeforeToday].pieChartItems;
 	}
 	$scope.goPast = function(){
-		$scope.animate = "slideInLeft";
-		$timeout(function(){$scope.animate = "";},500);
+		$scope.animateStats = "left";
+		$timeout(function(){$scope.animateStats = null;},500);
 		monthsBeforeToday++;
 		if(viewedMonth != 1)
 			viewedMonth--;
@@ -69,6 +72,15 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
 			$scope.handleErrors(response);
 		});
 	}
+	
+	var colorArray = ['#1f77b4', '#2ca02c', '#ff7f0e', '#7f7f7f'];
+	var colorFunction = function() {
+		return function(d, i) {
+			return colorArray[i];
+		};
+	}
+
+	
 	$scope.optionsBar = {
             chart: {
                 type: 'multiBarChart',
@@ -79,6 +91,7 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
                     bottom: 40,
                     left: 50
                 },
+				color: colorFunction(),
                 reduceXTicks : false,
                 staggerLabels: true,
                 showControls:false,
@@ -97,6 +110,7 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
                 x: function(d){return d.key;},
                 y: function(d){return d.y;},
                 duration: 500,
+				interactive:false,
                 labelType:"percent",
                 donutRatio:".5",
                 yAxis:{

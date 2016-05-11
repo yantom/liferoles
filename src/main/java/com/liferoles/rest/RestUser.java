@@ -2,6 +2,7 @@ package com.liferoles.rest;
 
 import java.time.LocalDate;
 
+import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
@@ -15,24 +16,33 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.liferoles.controller.AuthManager;
+import com.liferoles.controller.Nvd3StatsService;
 import com.liferoles.controller.UserManager;
 import com.liferoles.exceptions.LifeRolesAuthException;
 import com.liferoles.exceptions.TokenValidationException;
 import com.liferoles.model.User;
-import com.liferoles.rest.JSON.BooleanResponse;
-import com.liferoles.rest.JSON.ChartsData;
-import com.liferoles.utils.AuthUtils;
+import com.liferoles.rest.JSON.objects.BooleanResponse;
+import com.liferoles.rest.JSON.objects.nvd3stats.Nvd3ChartsData;
 
 @Path("/rest/users")
 public class RestUser {
-	private static final UserManager um = new UserManager();
+	@EJB
+	private UserManager um;
+	@EJB
+	private AuthManager am;
+	@EJB
+	private Nvd3StatsService nvd3Service;
 	
 	@GET
 	@Path("/m")
 	@Produces(MediaType.APPLICATION_JSON)
 	public User getUserJWT(@Context HttpServletRequest hsr) throws TokenValidationException{
+		for(int i=0;i<100;i++){
+			System.out.println("what the fuck");
+		}
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
+		Long userId = am.validateToken(token);
 		User u = um.getUserById(userId);
 		return u;
 	}
@@ -51,27 +61,27 @@ public class RestUser {
 	@GET
 	@Path("/web/stats/{year}/{month}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public ChartsData getStats(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean lastMonth,@Context HttpServletRequest hsr){
-		ChartsData chartsData= null;
+	public Nvd3ChartsData getStats(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean currentMonth,@Context HttpServletRequest hsr){
+		Nvd3ChartsData chartsData= null;
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		if(lastMonth == true)
-			chartsData = um.getMonthStatistics(year, month, userId,true);
+		if(currentMonth == true)
+			chartsData = nvd3Service.getJsonStatsData(year, month, true,userId);
 		else
-			chartsData = um.getMonthStatistics(year, month, userId,false);
+			chartsData = nvd3Service.getJsonStatsData(year, month, false,userId);
 		return chartsData;
 	}
 	
 	@GET
 	@Path("/m/stats/{year}/{month}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public ChartsData getStatsJWT(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean lastMonth,@Context HttpServletRequest hsr) throws TokenValidationException{
+	public Nvd3ChartsData getStatsJWT(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean currentMonth,@Context HttpServletRequest hsr) throws TokenValidationException{
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
-		ChartsData chartsData= null;
-		if(lastMonth == true)
-			chartsData = um.getMonthStatistics(year, month, userId,true);
+		Long userId = am.validateToken(token);
+		Nvd3ChartsData chartsData= null;
+		if(currentMonth == true)
+			chartsData = nvd3Service.getJsonStatsData(year, month, true,userId);
 		else
-			chartsData = um.getMonthStatistics(year, month, userId,false);
+			chartsData = nvd3Service.getJsonStatsData(year, month, false,userId);
 		return chartsData;
 	}
 	
@@ -80,9 +90,8 @@ public class RestUser {
 	@Path("/web/blocktokens")
 	public void blockUsersTokens(@Context HttpServletRequest hsr){
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		AuthUtils.addTokensToBlacklist(userId);
+		am.addTokensToBlacklist(userId);
 	}
-	
 	
 	@GET
 	@Path("/web/logout")
@@ -90,19 +99,22 @@ public class RestUser {
 		hsr.getSession().invalidate();
 	}
 	
+	@GET
+	@Path("/m/logout")
+	public void logoutUserMobile(@Context HttpServletRequest hsr) throws TokenValidationException{
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		am.logoutMobileUser(token);
+	}
+	
 	@PUT
 	@Path("/m")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void updateUser(User u,@Context HttpServletRequest hsr) throws LifeRolesAuthException, TokenValidationException{
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
+		Long userId = am.validateToken(token);
 		u.setId(userId);
 		if(u.getPassword() != null){
 			um.updateUserPassword(u);
-			return;
-		}
-		if(u.getEmail() != null){
-			um.updateUserEmail(u);
 			return;
 		}
 		um.updateUserData(u);
@@ -119,10 +131,6 @@ public class RestUser {
 			um.updateUserPassword(u);
 			return;
 		}
-		if(u.getEmail() != null){
-			um.updateUserEmail(u);
-			return;
-		}
 		um.updateUserData(u);
 	}
 	
@@ -132,7 +140,7 @@ public class RestUser {
 	@Produces(MediaType.APPLICATION_JSON)
 	public BooleanResponse checkPassword(User u,@Context HttpServletRequest hsr) throws LifeRolesAuthException{
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		return new BooleanResponse(AuthUtils.checkPassword(u.getPassword(), userId));
+		return new BooleanResponse(am.checkPassword(u.getPassword(), userId));
 	}
 	
 	@POST
@@ -141,15 +149,15 @@ public class RestUser {
 	@Produces(MediaType.APPLICATION_JSON)
 	public BooleanResponse checkPasswordMobile(User u,@Context HttpServletRequest hsr) throws LifeRolesAuthException, TokenValidationException{
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
-		return new BooleanResponse(AuthUtils.checkPassword(u.getPassword(), userId));
+		Long userId = am.validateToken(token);
+		return new BooleanResponse(am.checkPassword(u.getPassword(), userId));
 	}
 	
 	@PUT
 	@Path("/m/backlog/{year}/{month}/{day}")
 	public void moveOldTasksToBacklogMobile(@PathParam("year") int year,@PathParam("month") int month,@PathParam("day") int day,@Context HttpServletRequest hsr) throws TokenValidationException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
+		Long userId = am.validateToken(token);
 		um.moveOldTasksToBacklog(userId,LocalDate.of(year, month, day));
 	}
 	

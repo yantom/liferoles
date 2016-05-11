@@ -3,6 +3,7 @@ package com.liferoles.rest;
 import java.time.LocalDate;
 import java.util.List;
 
+import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -16,17 +17,19 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.liferoles.controller.AuthManager;
 import com.liferoles.controller.TaskManager;
 import com.liferoles.exceptions.TokenValidationException;
 import com.liferoles.model.Task;
 import com.liferoles.model.User;
-import com.liferoles.rest.JSON.IdResponse;
-import com.liferoles.utils.AuthUtils;
+import com.liferoles.rest.JSON.objects.IdResponse;
 
 @Path("/rest/tasks")
 public class RestTask {
-	
-	private static final TaskManager tm = new TaskManager();
+	@EJB
+	private TaskManager tm;
+	@EJB
+	private AuthManager am;
 	
 	@GET
 	@Path("/web/{year}/{month}/{day}")
@@ -42,7 +45,7 @@ public class RestTask {
     @Produces(MediaType.APPLICATION_JSON)
     public List<List<Task>> getTasksMobile(@Context HttpServletRequest hsr, @PathParam("year") int year, @PathParam("month") int month, @PathParam("day") int day) throws TokenValidationException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
+		Long userId = am.validateToken(token);
     	LocalDate dateFrom = LocalDate.of(year, month, day);
 		return tm.getInitTasks(userId,dateFrom);
     }
@@ -61,7 +64,7 @@ public class RestTask {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Task> getTasksPerWeekMobile(@Context HttpServletRequest hsr, @PathParam("year") int year, @PathParam("month") int month, @PathParam("day") int day) throws TokenValidationException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = AuthUtils.validateToken(token);
+		Long userId = am.validateToken(token);
     	LocalDate dateFrom = LocalDate.of(year, month, day);
 		return tm.getTasksForWeek(userId,dateFrom);
     }
@@ -86,7 +89,7 @@ public class RestTask {
     public IdResponse createTaskMobile(Task task, @Context HttpServletRequest hsr) throws TokenValidationException {
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		u.setId(AuthUtils.validateToken(token));
+		u.setId(am.validateToken(token));
 		task.setUser(u);
 		IdResponse id = new IdResponse();
 		id.setId(tm.createTask(task));
@@ -109,7 +112,7 @@ public class RestTask {
     public void updateTaskMobile(Task task, @Context HttpServletRequest hsr) throws TokenValidationException {
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		u.setId(AuthUtils.validateToken(token));
+		u.setId(am.validateToken(token));
 		task.setUser(u);
 		tm.updateTask(task);
     }
@@ -132,7 +135,7 @@ public class RestTask {
 		t.setId(taskId);
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		u.setId(AuthUtils.validateToken(token));
+		u.setId(am.validateToken(token));
 		t.setUser(u);
 		tm.deleteTask(t);
     }

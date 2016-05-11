@@ -1,4 +1,4 @@
-package com.liferoles.rest.JSON;
+package com.liferoles.rest.JSON.serializers;
 
 import java.io.IOException;
 
@@ -14,6 +14,7 @@ public class UserPartialSerializer extends JsonSerializer<User> {
 		jgen.writeNumberField("id", value.getId());
 		jgen.writeStringField("email", value.getEmail());
 		jgen.writeNumberField("firstDayOfWeek", value.getFirstDayOfWeek().ordinal());
+		jgen.writeStringField("personalMission", value.getPersonalMission());
         jgen.writeEndObject();
     }
 }
