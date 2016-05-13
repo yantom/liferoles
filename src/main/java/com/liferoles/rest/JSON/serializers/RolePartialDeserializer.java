@@ -12,10 +12,16 @@ import com.liferoles.model.Role;
 public class RolePartialDeserializer extends JsonDeserializer<Role> {
 	@Override
 	public Role deserialize(JsonParser jp, DeserializationContext arg1)throws IOException, JsonProcessingException {
-		JsonNode node = jp.getCodec().readTree(jp);
+		JsonNode mainNode = jp.getCodec().readTree(jp);
+		JsonNode node;
 		Role r = new Role();
-		r.setId(node.get("id").asLong());
-		r.setName(node.get("name").asText());
+		r.setId(mainNode.get("id").asLong());
+		
+		node = mainNode.get("name");
+		if(node == null)
+			r.setName(null);
+		else
+			r.setName(node.asText());
 		return r;
 	}
 }

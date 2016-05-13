@@ -34,7 +34,7 @@ public class Nvd3StatsService extends StatsService<Nvd3ChartsData> {
 		List<Nvd3PieChartDataItem> pieChartDataList = new ArrayList<>();
 		List<Nvd3BarChartDataItem> roleBarCharDataList = new ArrayList<>();
 		List<Nvd3BarChartDataItem> weekBarCharDataList = new ArrayList<>();
-
+		
 		Nvd3BarChartDataItem roleBarCharDataItemList0 = new Nvd3BarChartDataItem();
 		Nvd3BarChartDataItem weekBarCharDataItemList0 = new Nvd3BarChartDataItem();
 		Nvd3BarChartDataItem roleBarCharDataItemList1 = new Nvd3BarChartDataItem();
@@ -57,6 +57,7 @@ public class Nvd3StatsService extends StatsService<Nvd3ChartsData> {
 			pieChartDataList.add(new Nvd3PieChartDataItem(key, sd.getCountOfTasksPerRoleData().get(key)));
 		}
 		chartsData.setPieChartItems(pieChartDataList);
+		
 
 		for (String key : sd.getCountOfTasksPerRoleAndEffeciencyData()[0].keySet()) {
 			roleBarCharDataValueList0
