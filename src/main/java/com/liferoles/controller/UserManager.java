@@ -13,6 +13,7 @@ import javax.mail.internet.MimeMessage;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
@@ -41,7 +42,7 @@ public class UserManager {
 	}
 	public Long createUser(User user) throws LifeRolesAuthException{
 		SaltHashPair shp;
-		shp = AuthManager.computeHash(user.getPassword(), null);
+		shp = AuthUtils.computeHash(user.getPassword(), null);
 		user.setPassword(shp.getHash());
 		user.setSalt(shp.getSalt());
 		Long id = null;
@@ -69,7 +70,7 @@ public class UserManager {
 	}
 	
 	public void updateUserPassword(User user) throws LifeRolesAuthException{
-		SaltHashPair shp = AuthManager.computeHash(user.getPassword(), null);
+		SaltHashPair shp = AuthUtils.computeHash(user.getPassword(), null);
 		try{
 			Query query = em.createQuery("UPDATE User set password = :password, salt = :salt  WHERE id = :id");
 			query.setParameter("password", shp.getHash());
@@ -104,31 +105,35 @@ public class UserManager {
 			Query query = em.createQuery("from User where id = :id");
 			query.setParameter("id", id);
 			u = (User)query.getSingleResult();
-		}catch(Exception e){
+		}
+		catch (NoResultException nre){
+			logger.info("user with id " +id + " not found in database");
+			return null;
+		}
+		catch(Exception e){
 			logger.error("db error occured while retrieving user with id " + id);
 			throw e;
 		}
-		if(u == null)
-			logger.info("user with id " +id + " not found in database");
-		else
-			logger.info("user with id " + id + " retrieved");
+		logger.info("user with id " + id + " retrieved");
 		return u;
 	}
 	
 	public User getUserByMail(String mail){
 		User u = null;
 		try{
-			Query query = em.createQuery("from User where email = :email");
+			Query query = em.createQuery("from User where email like :email");
 			query.setParameter("email", mail);
 			u = (User)query.getSingleResult();
-		}catch(Exception e){
+		}
+		catch (NoResultException nre){
+			logger.info("user with email " + mail + " not found in database");
+			return null;
+		}
+		catch(Exception e){
 			logger.error("db error occured while retrieving user with email " + mail);
 			throw e;
 		}
-		if(u == null)
-			logger.info("user with email " + mail + " not found in database");
-		else
-			logger.info("user with email " + mail + " retrieved");
+		logger.info("user with email " + mail + " retrieved");
 		return u;
 	}
 
@@ -150,8 +155,8 @@ public class UserManager {
 	public void sendResetLink(String mail) throws LifeRolesException{
 		User u = getUserByMail(mail);
 		//18 because if 16 padding is added and it is stripped by browser
-		String token = AuthManager.getRandomBase64Url(18);
-		String tokenHash = AuthManager.computeHash(token, mail).getHash();
+		String token = AuthUtils.getRandomBase64Url(18);
+		String tokenHash = AuthUtils.computeHash(token, mail).getHash();
 		try{
 			Query query = em.createNativeQuery("insert into passwordreset (appuser_id, tokenhash, expirationdate) values(:userId,:tokenhash,:expiration)");
 			query.setParameter("userId", u.getId());

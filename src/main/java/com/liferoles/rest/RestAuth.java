@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
 import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -38,6 +40,7 @@ public class RestAuth {
 	@EJB
 	private AuthManager am;
 	private static final Logger logger = LoggerFactory.getLogger(AuthManager.class);
+	
 	@POST
     @Path("/m/login")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -55,7 +58,7 @@ public class RestAuth {
     @Path("/web/reg")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createUser(User user, @QueryParam("captcha") String captcha) throws LifeRolesAuthException {
+    public IdResponse registerUser(User user, @QueryParam("captcha") String captcha) throws LifeRolesAuthException {
 		if(captcha == null || captcha.isEmpty()){
 			logger.error("captcha token missing");
 			throw new LifeRolesAuthException("captcha token missing");
@@ -80,9 +83,10 @@ public class RestAuth {
     @Path("/m/reg")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createUserMobile(User user) throws LifeRolesAuthException {
+    public IdResponse registerUserMobile(User user) throws LifeRolesAuthException {
 		IdResponse id = new IdResponse();
 		id.setId(um.createUser(user));
+		System.out.println(id);
 		return id;
     }
 	
