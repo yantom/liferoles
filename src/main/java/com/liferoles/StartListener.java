@@ -3,7 +3,7 @@ package com.liferoles;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import com.liferoles.controller.AuthManager;
+import com.liferoles.controller.AuthUtils;
 import com.liferoles.exceptions.LifeRolesException;
 
 public class StartListener implements ServletContextListener{
@@ -15,7 +15,7 @@ public class StartListener implements ServletContextListener{
 	@Override
 	public void contextInitialized(ServletContextEvent ev) {
 		try {
-			AuthManager.setHashKey();
+			AuthUtils.setHashKey();
 		} catch (LifeRolesException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

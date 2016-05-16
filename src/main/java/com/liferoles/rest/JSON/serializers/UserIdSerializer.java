@@ -1,3 +1,4 @@
+
 package com.liferoles.rest.JSON.serializers;
 
 import java.io.IOException;

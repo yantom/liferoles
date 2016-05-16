@@ -11,7 +11,6 @@ public class UserPartialSerializer extends JsonSerializer<User> {
 	@Override
 	public void serialize(User value, JsonGenerator jgen, SerializerProvider provider) throws IOException{
 		jgen.writeStartObject();
-		jgen.writeNumberField("id", value.getId());
 		jgen.writeStringField("email", value.getEmail());
 		jgen.writeNumberField("firstDayOfWeek", value.getFirstDayOfWeek().ordinal());
 		jgen.writeStringField("personalMission", value.getPersonalMission());

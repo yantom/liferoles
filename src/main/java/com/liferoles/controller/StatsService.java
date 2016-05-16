@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -61,30 +59,28 @@ public abstract class StatsService<T> {
 		Map<String, Integer> countOfTasksPerRole = new HashMap<>();
 		Map<String, Integer>[] countOfTasksPerRoleAndEffeciency = (Map<String, Integer>[]) new Map[4];
 		Map<String, Integer>[] countOfTasksPerWeekAndEffeciency = (Map<String, Integer>[]) new Map[4];
-		countOfTasksPerRoleAndEffeciency[0] = new HashMap<String,Integer>();
-		countOfTasksPerRoleAndEffeciency[1] = new HashMap<String,Integer>();
-		countOfTasksPerRoleAndEffeciency[2] = new HashMap<String,Integer>();
-		countOfTasksPerRoleAndEffeciency[3] = new HashMap<String,Integer>();
-		countOfTasksPerWeekAndEffeciency[0] = new HashMap<String,Integer>();
-		countOfTasksPerWeekAndEffeciency[1] = new HashMap<String,Integer>();
-		countOfTasksPerWeekAndEffeciency[2] = new HashMap<String,Integer>();
-		countOfTasksPerWeekAndEffeciency[3] = new HashMap<String,Integer>();
+		
+		for(int i=0;i<4;i++){
+			countOfTasksPerRoleAndEffeciency[i] = new HashMap<String,Integer>();
+			countOfTasksPerWeekAndEffeciency[i] = new HashMap<String,Integer>();
+		}
+		
 		Set<String> namesOfRoles = new HashSet<>();
 		for (Object[] row : rowsFromDB) {
 			namesOfRoles.add((String) row[2]);
 		}
+		
 		for (String roleName : namesOfRoles) {
 			countOfTasksPerRole.put(roleName, 0);
-			countOfTasksPerRoleAndEffeciency[0].put(roleName, 0);
-			countOfTasksPerRoleAndEffeciency[1].put(roleName, 0);
-			countOfTasksPerRoleAndEffeciency[2].put(roleName, 0);
-			countOfTasksPerRoleAndEffeciency[3].put(roleName, 0);
+			for(int i =0; i<4; i++){
+				countOfTasksPerRoleAndEffeciency[i].put(roleName, 0);
+			}
 		}
+		
 		for (int i = 1; i <= countOfWeeksInMonth; i++) {
-			countOfTasksPerWeekAndEffeciency[0].put(String.format("Week %d", i), 0);
-			countOfTasksPerWeekAndEffeciency[1].put(String.format("Week %d", i), 0);
-			countOfTasksPerWeekAndEffeciency[2].put(String.format("Week %d", i), 0);
-			countOfTasksPerWeekAndEffeciency[3].put(String.format("Week %d", i), 0);
+			for(int j=0;j<4;j++){
+				countOfTasksPerWeekAndEffeciency[j].put(String.format("Week %d", i), 0);
+			}
 		}
 
 		// fill maps with counts

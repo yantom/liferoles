@@ -3,8 +3,6 @@ package com.liferoles.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
 
 /**
  * General class for holding the stats data.

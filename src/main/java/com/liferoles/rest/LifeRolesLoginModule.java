@@ -12,7 +12,7 @@ import org.jboss.security.auth.spi.DatabaseServerLoginModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.liferoles.controller.AuthManager;
+import com.liferoles.controller.AuthUtils;
 import com.liferoles.exceptions.LifeRolesException;
 
 public class LifeRolesLoginModule extends DatabaseServerLoginModule {
@@ -71,7 +71,7 @@ public class LifeRolesLoginModule extends DatabaseServerLoginModule {
 	      }
 		String hash;
 		try {
-			hash = AuthManager.computeHash(password, salt).getHash();
+			hash = AuthUtils.computeHash(password, salt).getHash();
 		} catch (LifeRolesException e) {
 			throw new SecurityException("unable to authenticate user - can not compute password hash",e);
 		}
