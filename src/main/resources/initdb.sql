@@ -2,7 +2,7 @@ CREATE TABLE appuser
 (
   id bigint NOT NULL,
   email text NOT NULL UNIQUE,
-  personalmission text DEFAULT "",
+  personalmission text DEFAULT '',
   firstDayOfWeek int NOT NULL DEFAULT 0,
   salt text NOT NULL,
   password text NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE task
   date date,
   time time without time zone,
   firstdate date,
-  finished boolean NOT NULL DEFAULT FALSE,,
+  finished boolean NOT NULL DEFAULT FALSE,
   note text,
   important boolean NOT NULL DEFAULT FALSE,
   appuser_id bigint,
@@ -63,6 +63,7 @@ CREATE TABLE task
       ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT fk_user FOREIGN KEY (appuser_id)
       REFERENCES appuser (id) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE tokens
