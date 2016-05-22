@@ -1,29 +1,24 @@
 package com.liferoles.rest;
 
-import java.time.LocalDate;
-
 import javax.ejb.EJB;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.liferoles.controller.AuthManager;
-import com.liferoles.controller.Nvd3StatsService;
 import com.liferoles.controller.UserManager;
-import com.liferoles.exceptions.LifeRolesAuthException;
+import com.liferoles.exceptions.LiferolesRuntimeException;
 import com.liferoles.exceptions.TokenValidationException;
+import com.liferoles.exceptions.WrongCredentialsException;
 import com.liferoles.model.User;
-import com.liferoles.rest.JSON.objects.BooleanResponse;
-import com.liferoles.rest.JSON.objects.nvd3stats.Nvd3ChartsData;
+import com.liferoles.rest.JSON.objects.PasswordChange;
 
 @Path("/rest/users")
 public class RestUser {
@@ -31,16 +26,11 @@ public class RestUser {
 	private UserManager um;
 	@EJB
 	private AuthManager am;
-	@EJB
-	private Nvd3StatsService nvd3Service;
 	
 	@GET
 	@Path("/m")
 	@Produces(MediaType.APPLICATION_JSON)
-	public User getUserJWT(@Context HttpServletRequest hsr) throws TokenValidationException{
-		for(int i=0;i<100;i++){
-			System.out.println("what the fuck");
-		}
+	public User getUserJWT(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
 		User u = um.getUserById(userId);
@@ -50,7 +40,7 @@ public class RestUser {
 	@GET
 	@Path("/web")
 	@Produces(MediaType.APPLICATION_JSON)
-	public User getUser(@Context HttpServletRequest hsr){
+	public User getUser(@Context HttpServletRequest hsr) throws LiferolesRuntimeException{
 		User u;
 		HttpSession session = hsr.getSession();
 		u = um.getUserByMail(hsr.getUserPrincipal().getName());
@@ -58,113 +48,96 @@ public class RestUser {
 		return u;
 	}
 	
-	@GET
-	@Path("/web/stats/{year}/{month}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Nvd3ChartsData getStats(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean currentMonth,@Context HttpServletRequest hsr){
-		Nvd3ChartsData chartsData= null;
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		if(currentMonth == true)
-			chartsData = nvd3Service.getJsonStatsData(year, month, true,userId);
-		else
-			chartsData = nvd3Service.getJsonStatsData(year, month, false,userId);
-		return chartsData;
-	}
-	
-	@GET
-	@Path("/m/stats/{year}/{month}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Nvd3ChartsData getStatsJWT(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean currentMonth,@Context HttpServletRequest hsr) throws TokenValidationException{
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-		Nvd3ChartsData chartsData= null;
-		if(currentMonth == true)
-			chartsData = nvd3Service.getJsonStatsData(year, month, true,userId);
-		else
-			chartsData = nvd3Service.getJsonStatsData(year, month, false,userId);
-		return chartsData;
-	}
-	
-	
-	@PUT
-	@Path("/web/blocktokens")
-	public void blockUsersTokens(@Context HttpServletRequest hsr){
+	@POST
+	@Path("/web/tokensBlacklist")
+	public void blockUsersTokens(@Context HttpServletRequest hsr) throws LiferolesRuntimeException{
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
 		am.addTokensToBlacklist(userId);
 	}
 	
-	@GET
+	@POST
 	@Path("/web/logout")
-	public void logoutUser(@Context HttpServletRequest hsr){
-		hsr.getSession().invalidate();
+	public void logoutUser(@Context HttpServletRequest hsr) throws ServletException{
+		hsr.logout();
 	}
 	
-	@GET
+	@POST
 	@Path("/m/logout")
-	public void logoutUserMobile(@Context HttpServletRequest hsr) throws TokenValidationException{
+	public void logoutUserMobile(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		am.logoutMobileUser(token);
 	}
 	
-	@PUT
-	@Path("/m")
+	@POST
+	@Path("/m/mail")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUser(User u,@Context HttpServletRequest hsr) throws LifeRolesAuthException, TokenValidationException{
+	public void updateUserEmailM(User u,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException, WrongCredentialsException{
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
 		u.setId(userId);
-		if(u.getPassword() != null){
-			um.updateUserPassword(u);
-			return;
-		}
-		um.updateUserData(u);
-		
+		if(am.checkPassword(u.getPassword(), u.getId()))
+			um.updateUserEmail(u);
+		else
+			throw new WrongCredentialsException("wrong credentials");
 	}
-	
-	@PUT
-	@Path("/web")
+	@POST
+	@Path("/web/mail")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserMobile(User u,@Context HttpServletRequest hsr) throws  LifeRolesAuthException{
+	public void updateUserEmailW(User u,@Context HttpServletRequest hsr) throws  LiferolesRuntimeException, WrongCredentialsException{
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
 		u.setId(userId);
-		if(u.getPassword() != null){
+		if(am.checkPassword(u.getPassword(), u.getId()))
+			um.updateUserEmail(u);
+		else
+			throw new WrongCredentialsException("wrong credentials");
+	}
+
+	@POST
+	@Path("/m/password")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateUserPasswordM(PasswordChange pc,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException, WrongCredentialsException{
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		User u = new User();
+		u.setId(userId);
+		u.setPassword(pc.getOldP());
+		if(am.checkPassword(u.getPassword(), u.getId())){
+			u.setPassword(pc.getNewP());
 			um.updateUserPassword(u);
-			return;
 		}
+		else
+			throw new WrongCredentialsException("wrong credentials");
+	}
+	@POST
+	@Path("/web/password")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateUserPasswordW(PasswordChange pc,@Context HttpServletRequest hsr) throws  LiferolesRuntimeException, WrongCredentialsException{
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
+		User u = new User();
+		u.setId(userId);
+		u.setPassword(pc.getOldP());
+		if(am.checkPassword(u.getPassword(), u.getId())){
+			u.setPassword(pc.getNewP());
+			um.updateUserPassword(u);
+		}
+		else
+			throw new WrongCredentialsException("wrong credentials");
+	}
+	@POST
+	@Path("/m/data")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateUserDataM(User u,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		u.setId(userId);
 		um.updateUserData(u);
 	}
-	
 	@POST
-	@Path("/web/checkPassword")
+	@Path("/web/data")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public BooleanResponse checkPassword(User u,@Context HttpServletRequest hsr) throws LifeRolesAuthException{
+	public void updateUserDataW(User u,@Context HttpServletRequest hsr) throws  LiferolesRuntimeException{
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		return new BooleanResponse(am.checkPassword(u.getPassword(), userId));
-	}
-	
-	@POST
-	@Path("/m/checkPassword")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public BooleanResponse checkPasswordMobile(User u,@Context HttpServletRequest hsr) throws LifeRolesAuthException, TokenValidationException{
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-		return new BooleanResponse(am.checkPassword(u.getPassword(), userId));
-	}
-	
-	@PUT
-	@Path("/m/backlog/{year}/{month}/{day}")
-	public void moveOldTasksToBacklogMobile(@PathParam("year") int year,@PathParam("month") int month,@PathParam("day") int day,@Context HttpServletRequest hsr) throws TokenValidationException {
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-		um.moveOldTasksToBacklog(userId,LocalDate.of(year, month, day));
-	}
-	
-	@PUT
-	@Path("/web/backlog/{year}/{month}/{day}")
-	public void moveOldTasksToBacklog(@PathParam("year") int year,@PathParam("month") int month,@PathParam("day") int day,@Context HttpServletRequest hsr){
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		um.moveOldTasksToBacklog(userId,LocalDate.of(year, month, day));
+		u.setId(userId);
+		um.updateUserData(u);
 	}
 }

@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.liferoles.controller.AuthUtils;
-import com.liferoles.exceptions.LifeRolesException;
+import com.liferoles.exceptions.LiferolesRuntimeException;
 
 public class LifeRolesLoginModule extends DatabaseServerLoginModule {
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseServerLoginModule.class);
@@ -72,7 +72,7 @@ public class LifeRolesLoginModule extends DatabaseServerLoginModule {
 		String hash;
 		try {
 			hash = AuthUtils.computeHash(password, salt).getHash();
-		} catch (LifeRolesException e) {
+		} catch (LiferolesRuntimeException e) {
 			throw new SecurityException("unable to authenticate user - can not compute password hash",e);
 		}
 		return hash;

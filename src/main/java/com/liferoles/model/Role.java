@@ -31,6 +31,13 @@ import com.liferoles.rest.JSON.serializers.UserIdSerializer;
 @Entity
 public class Role implements Serializable{
     
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2065523585834141786L;
+	/**
+	 * 
+	 */
 	@SequenceGenerator(name="role_id", sequenceName="role_id_seq", allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="role_id")
 	@Id
@@ -46,6 +53,23 @@ public class Role implements Serializable{
     @JsonDeserialize(using = UserIdDeserializer.class)
     @JoinColumn(name="appuser_id")
     private User user;
+	
+	public Role(){};
+	
+	public Role(Long id,String name,List<RoleGoal> goals,User u){
+		this.id = id;
+		this.name = name;
+		this.goals = goals;
+	}
+	
+	public Role(String name,List<RoleGoal> goals){
+		this.name = name;
+		this.goals = goals;
+	}
+	
+	public Role(Long id){
+		this.id=id;
+	}
 
 	public Long getId() {
 		return id;
@@ -102,5 +126,6 @@ public class Role implements Serializable{
 			return false;
 		return true;
 	}
-
+	
+	
 }

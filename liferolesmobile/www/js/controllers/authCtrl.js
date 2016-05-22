@@ -204,6 +204,10 @@ angular.module(authCtrlModule).controller("authCtrl",function($scope,$injector,$
 				},
 				function(response){
 					$scope.resetData.errMsg="";
+					if(response.status ==403){
+						alert("Reset link is wrong, expired or already used.")
+						return;
+					}
 					$scope.handleErrors(response);
 				});
 	}

@@ -8,8 +8,6 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 import javax.ejb.EJB;
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
 import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -25,8 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.liferoles.controller.AuthManager;
 import com.liferoles.controller.UserManager;
-import com.liferoles.exceptions.LifeRolesAuthException;
-import com.liferoles.exceptions.LifeRolesException;
+import com.liferoles.exceptions.LiferolesRuntimeException;
 import com.liferoles.exceptions.TokenValidationException;
 import com.liferoles.model.User;
 import com.liferoles.rest.JSON.objects.BooleanResponse;
@@ -45,7 +42,7 @@ public class RestAuth {
     @Path("/m/login")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public UserWithToken loginJWT(User user) throws LifeRolesAuthException {
+    public UserWithToken loginJWT(User user) throws LiferolesRuntimeException {
 		User dbUser;
 		dbUser = am.authenticateMobileUser(user);
 		if(dbUser == null)
@@ -58,17 +55,17 @@ public class RestAuth {
     @Path("/web/reg")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse registerUser(User user, @QueryParam("captcha") String captcha) throws LifeRolesAuthException {
+    public IdResponse registerUserWeb(User user, @QueryParam("captcha") String captcha) throws LiferolesRuntimeException {
 		if(captcha == null || captcha.isEmpty()){
 			logger.error("captcha token missing");
-			throw new LifeRolesAuthException("captcha token missing");
+			throw new LiferolesRuntimeException("captcha token missing");
 		}
 		boolean captchaOK;
 		try {
 			captchaOK = resolveCaptcha(captcha);
 		} catch (IOException e) {
 			logger.error("captcha IO exception",e);
-			throw new LifeRolesAuthException(e);
+			throw new LiferolesRuntimeException(e);
 		}
 		if(captchaOK){
 			IdResponse id = new IdResponse();
@@ -76,30 +73,29 @@ public class RestAuth {
 			return id;
 		}
 		logger.error("bot trying to register");
-		throw new LifeRolesAuthException("BOT");
+		throw new LiferolesRuntimeException("BOT");
     }
 	
 	@POST
     @Path("/m/reg")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse registerUserMobile(User user) throws LifeRolesAuthException {
+    public IdResponse registerUserMobile(User user) throws LiferolesRuntimeException {
 		IdResponse id = new IdResponse();
 		id.setId(um.createUser(user));
-		System.out.println(id);
 		return id;
     }
 	
 	@POST
     @Path("/getResetCode/{userMail}")
-	public void sendResetLink(@PathParam("userMail") String email) throws LifeRolesException{
+	public void sendResetLink(@PathParam("userMail") String email) throws LiferolesRuntimeException{
 		um.sendResetLink(email);
 	}
 	
 	@GET
 	@Path("/check/{userMail}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public BooleanResponse checkIfUserExistsInDB(@PathParam("userMail") String userMail){
+	public BooleanResponse checkIfUserExistsInDB(@PathParam("userMail") String userMail) throws LiferolesRuntimeException{
 		if(um.getUserByMail(userMail) != null)
 			return new BooleanResponse(true);
 		return new BooleanResponse(false);
@@ -108,7 +104,7 @@ public class RestAuth {
 	@POST
 	@Path("/reset")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void resetUserPassword(UserWithToken u) throws LifeRolesAuthException, TokenValidationException{
+	public void resetUserPassword(UserWithToken u) throws TokenValidationException, LiferolesRuntimeException{
 		am.useResetToken(u.getToken(), u.getUser());
 		um.updateUserPassword(u.getUser());
 	}

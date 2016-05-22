@@ -246,6 +246,8 @@ angular.module('liferolesApp').factory('TasksAndRoles',function($rootScope,$http
 		 var getRoleById = function(id){
 			 for(var i = 0; i< rolesList.length; i++){
 				 if (rolesList[i].id == id){
+					 console.log(rolesList[i].name);
+					 console.log(rolesList[i].id);
 					 return rolesList[i];
 				 }
 			 } 

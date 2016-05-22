@@ -25,7 +25,7 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 	//PLATFORM SPECIFIC
 	if(platform=="m"){
 		$scope.logout = function(){
-			$http.get(host + "/rest/users/m/logout").then(function(){
+			$http.post(host + "/rest/users/m/logout",{}).then(function(){
 				localStorage.removeItem("jwt");
 				$timeout(function(){$ionicHistory.clearHistory();$ionicHistory.clearCache();}, 500);
 				$state.go("auth");
@@ -42,7 +42,7 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 				buttons: [
 				{text: 'OK',
 				onTap: function(){
-					$http.put(host +  "/rest/users/web/blocktokens",{}).then(
+					$http.post(host +  "/rest/users/web/tokensBlacklist",{}).then(
 					function(){},
 					function(response){
 						$scope.handleErrors(response);
@@ -56,7 +56,7 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 			$ionicPopup.show(areYouSurePopupSpec);
 		};
 		$scope.logout = function(){
-			$http.get(host + "/rest/users/web/logout").then(function(){
+			$http.post(host + "/rest/users/web/logout",{}).then(function(){
 				$window.location.href = host;
 			},
 			function(response){
@@ -76,30 +76,21 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 		}
 		if (!(confirm("Please confirm your new email:\n"+$scope.emailData.newEmail)))
 			return;
-		$http.post(host + "/rest/users/"+platform+"/checkPassword",{password:$scope.emailData.password}).then(
-			function(response){
-				if (response.data.response == true){
-					var oldMail = $scope.user.email;
-					$scope.user.email = $scope.emailData.newEmail;
-					$http.put(host + "/rest/users/"+platform,$scope.user).then(
-					function(){
-						$scope.viewData.email = $scope.emailData.newEmail;
-						$scope.hideEmailEdit();
-					},
-					function(response){
-						$scope.user.email = oldMail;
-						$scope.handleErrors(response);
-						$scope.hideEmailEdit();
-					});
-				}
-				else{
-					$scope.emailData.errMsg="Wrong password";
-				}
-			},
-			function(response){
-					$scope.handleErrors(response);
-					$scope.hideEmailEdit();
-			});		
+		$http.post(host + "/rest/users/"+platform+"/mail",{password:$scope.emailData.password,email:$scope.emailData.newEmail}).then(
+		function(){
+			$scope.user.email = $scope.emailData.newEmail;
+			$scope.viewData.email = $scope.emailData.newEmail;
+			$scope.hideEmailEdit();
+		},
+		function(response){
+			if(response.status == 401){
+				alert("Wrong password");
+			}
+			else{
+				$scope.handleErrors(response);
+			}
+			$scope.hideEmailEdit();
+		});
 	}
 	
 	$scope.changePassword = function(){
@@ -119,26 +110,19 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 			$scope.passwdData.errMsg="Wrong password";
 			return
 		}
-		$http.post(host + "/rest/users/"+platform+"/checkPassword",{password:$scope.passwdData.password}).then(
-			function(response){
-				if(response.data.response == true){
-					$http.put(host + "/rest/users/"+platform,{password:$scope.passwdData.newPassword}).then(
-					function(){
-						$scope.hidePasswdEdit();
-					},
-					function(response){
-						$scope.handleErrors(response);
-						$scope.hidePasswdEdit();
-					});
-				}
-				else{
-					$scope.passwdData.errMsg="Wrong password";
-				}
-			},
-			function(response){
+		$http.post(host + "/rest/users/"+platform+"/password",{newP:$scope.passwdData.newPassword,oldP:$scope.passwdData.password}).then(
+		function(){
+			$scope.hidePasswdEdit();
+		},
+		function(response){
+			if(response.status == 401){
+				alert("Wrong password");
+			}
+			else{
 				$scope.handleErrors(response);
-				$scope.hidePasswdEdit();
-			});
+			}
+			$scope.hidePasswdEdit();
+		});
 	}
 	
 	$scope.changeFirstDay = function(){
@@ -147,7 +131,7 @@ angular.module('liferolesApp').controller("settingsCtrl",function($scope,$http,$
 			if($scope.viewData.newFirstDay != null && $scope.viewData.newFirstDay != $scope.user.firstDayOfWeek){
 				var oldFirstDay = $scope.user.firstDayOfWeek;
 				$scope.user.firstDayOfWeek = $scope.viewData.newFirstDay;
-				$http.put(host + "/rest/users/"+platform,$scope.user).then(
+				$http.post(host + "/rest/users/"+platform+"/data",$scope.user).then(
 				function(){
 					var date = new Date();
 			    	if((date.getDay()+6)%7 >= $scope.user.firstDayOfWeek)

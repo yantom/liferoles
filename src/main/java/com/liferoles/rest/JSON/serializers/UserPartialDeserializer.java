@@ -37,13 +37,13 @@ public class UserPartialDeserializer extends JsonDeserializer<User> {
 		
 		node = mainNode.get("personalMission");
 		if(node == null)
-			u.setPersonalMission(null);
+			u.setPersonalMission("");
 		else
 			u.setPersonalMission(node.asText());
 		
 		node = mainNode.get("firstDayOfWeek");
 		if(node == null)
-			u.setFirstDayOfWeek(null);
+			u.setFirstDayOfWeek(Day.MON);
 		else
 			u.setFirstDayOfWeek(Day.values()[node.asInt()]);
 		return u;

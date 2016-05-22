@@ -1,84 +1,80 @@
 package com.liferoles.test;
 
-import static com.jayway.restassured.RestAssured.*;
-import static com.jayway.restassured.matcher.RestAssuredMatchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.fail;
+import static com.jayway.restassured.RestAssured.baseURI;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.useRelaxedHTTPSValidation;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.After;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+
+import javax.sql.DataSource;
+
+import org.hamcrest.core.IsNot;
 import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.authentication.FormAuthConfig;
 
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RestAuthTest {
 	
-	public RestAuthTest(){
-		/*
-		baseURI = "https://localhost:8443/rest/auth";
-		RestAssured.useRelaxedHTTPSValidation();
-		//port = 8443;
-		authentication = form("permanentuser@gmail.com", "permuser01", new FormAuthConfig("/j_security_check", "j_username", "j_password"));
-	*/
-	}
+	/**
+	 * missing tests for registerUserWeb (can not automatically send captcha)
+	 * missing tests for sendResetLink, resetUserPassword (requires email)
+	 */
 	
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		
-		
+	public RestAuthTest(){
+		baseURI = "https://localhost:8443";
+		useRelaxedHTTPSValidation();
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		DataSource ds = Utils.getDataSource();
+        try(Connection conn = ds.getConnection();PreparedStatement ps = conn.prepareStatement("delete from appuser where email like 'testuser1@gmail.com'");){
+        	ps.execute();
+        }
 	}
 
-	@Before
-	public void setUp() throws Exception {
+	@Test
+    public void a_registerUserMobile() {
+		//valid registration
+		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"')).post("/rest/auth/m/reg").then().body("id",greaterThan(0)).statusCode(200);
+		//registration with already used email
+		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"')).post("/rest/auth/m/reg").then().statusCode(greaterThanOrEqualTo(300));
 	}
-
-	@After
-	public void tearDown() throws Exception {
-	}
-	
-	
-	
-	
 	
 	@Test
-	public void checkIfUserExistsInDB() {
-		System.out.println("what the hdsfsdfsdf");
-		//given().get("/check/novymail");
+    public void b_loginJWT(){
+		//valid credentials
+		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"')).post("/rest/auth/m/login").then().body("token",IsNot.not(isEmptyOrNullString())).statusCode(200);
+		//invalid credentials
+		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser2'}".replace('\'', '"')).post("/rest/auth/m/login").then().statusCode(204);
 	}
 	
-	/*
 	@Test
-	public void loginUserMobile() {
-		given()
-		.auth()
-		.form("testuser1", "r", new FormAuthConfig("/j_spring_security_check", "j_username", "j_password"))
-		.when()
-		.get("/formAuth")
-		.then()
-		.statusCode(200);
-		
-		
-		User user = new User();
-		user.setEmail("permanentuser@gmail.com");
-		user.setPassword("permpass00");
-		try{
-			ra.registerUserMobile(user);
-		}
-		catch(Exception ex){
-			ex.printStackTrace();
-			fail("Creating user with right data failed.");
-		}
-	}*/
+	public void c_loginSession(){
+		//valid credentials
+		String responseFromGoodPasswd = given().auth().form("testuser1@gmail.com", "testuser1", new FormAuthConfig("/j_security_check", "j_username", "j_password")).when().get("/").then().extract().asString();
+		assertTrue(responseFromGoodPasswd.contains("ng-app=\"liferolesApp\""));
+		//invalid credentials
+		String responseFromBadPasswd = given().auth().form("testuser1@gmail.com", "testuser2", new FormAuthConfig("/j_security_check", "j_username", "j_password")).when().get("/").then().extract().asString();
+		assertTrue(responseFromBadPasswd.contains("ng-app=\"liferolesAuth\""));
+	}
+	
+	@Test
+	public void d_checkIfUserExistsInDB(){
+		//user which exists
+		given().get("/rest/auth/check/testuser1@gmail.com").then().body("response", equalTo(true));
+		//user which does not exist
+		given().get("/rest/auth/check/testuser2@gmail.com").then().body("response", equalTo(false));
+	}
 	
 }

@@ -36,8 +36,8 @@ public class Nvd3StatsService extends StatsService<Nvd3ChartsData> {
 		
 		Nvd3BarChartDataItem[] roleBarChartDataItems = new Nvd3BarChartDataItem[4];
 		Nvd3BarChartDataItem[] weekBarChartDataItems = new Nvd3BarChartDataItem[4];
-		List<Nvd3BarChartDataValue>[] roleBarChartDataValues = (ArrayList<Nvd3BarChartDataValue>[]) new List[4];
-		List<Nvd3BarChartDataValue>[] weekBarChartDataValues = (ArrayList<Nvd3BarChartDataValue>[]) new List[4];
+		List<Nvd3BarChartDataValue>[] roleBarChartDataValues = (ArrayList<Nvd3BarChartDataValue>[]) new ArrayList[4];
+		List<Nvd3BarChartDataValue>[] weekBarChartDataValues = (ArrayList<Nvd3BarChartDataValue>[]) new ArrayList[4];
 		
 		String[] indexes = {"Earlier than planned","Day D","Within 3 days","Postponed"};
 
@@ -49,7 +49,10 @@ public class Nvd3StatsService extends StatsService<Nvd3ChartsData> {
 		
 		//fill data for roles and weeks charts
 		for(int i =0;i<4;i++){
-			
+			roleBarChartDataValues[i] = new ArrayList<Nvd3BarChartDataValue>();
+			weekBarChartDataValues[i] = new ArrayList<Nvd3BarChartDataValue>();
+			roleBarChartDataItems[i] = new Nvd3BarChartDataItem();
+			weekBarChartDataItems[i] = new Nvd3BarChartDataItem();
 			for (String key : sd.getCountOfTasksPerRoleAndEffeciencyData()[i].keySet()) {
 				roleBarChartDataValues[i].add(new Nvd3BarChartDataValue(key, sd.getCountOfTasksPerRoleAndEffeciencyData()[i].get(key)));
 			}
@@ -58,7 +61,7 @@ public class Nvd3StatsService extends StatsService<Nvd3ChartsData> {
 			roleBarChartData.add(roleBarChartDataItems[i]);
 			
 			for (String key : sd.getCountOfTasksPerWeekAndEffeciencyData()[i].keySet()) {
-				weekBarChartDataValues[0].add(new Nvd3BarChartDataValue(key, sd.getCountOfTasksPerWeekAndEffeciencyData()[i].get(key)));
+				weekBarChartDataValues[i].add(new Nvd3BarChartDataValue(key, sd.getCountOfTasksPerWeekAndEffeciencyData()[i].get(key)));
 			}
 			weekBarChartDataItems[i].setKey(indexes[i]);
 			weekBarChartDataItems[i].setValues(weekBarChartDataValues[i]);

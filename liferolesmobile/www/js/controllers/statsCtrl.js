@@ -57,7 +57,7 @@ angular.module('liferolesApp').controller("statsCtrl",function($scope,$http,$tim
 		}
 	}
 	var pushNewChartsData = function(year,month,query){
-		$http.get(host + "/rest/users/"+platform+"/stats/" + year + "/" + month + query).then(
+		$http.get(host + "/rest/tasks/"+platform+"/stats/" + year + "/" + month + query).then(
 		function(val){
 			if(val.data ==""){
 				chartsData.push({barChartItemsRole:[],barChartItemsWeek:[],pieChartItems:[]});}

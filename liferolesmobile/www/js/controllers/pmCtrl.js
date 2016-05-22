@@ -14,7 +14,7 @@ angular.module('liferolesApp').controller("pmCtrl",function($scope,$http,$timeou
 			$scope.update();
 	});
 	$scope.update= function(){
-		$http.put(host + "/rest/users/"+platform,$scope.user).then(
+		$http.post(host + "/rest/users/"+platform+"/data",$scope.user).then(
 			function(){
 			},
 			function(response){

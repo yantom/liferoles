@@ -10,6 +10,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -17,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.liferoles.controller.AuthManager;
 import com.liferoles.controller.RoleManager;
+import com.liferoles.exceptions.LiferolesRuntimeException;
 import com.liferoles.exceptions.TokenValidationException;
 import com.liferoles.model.Role;
 import com.liferoles.model.User;
@@ -31,7 +33,7 @@ public class RestRole {
 	@GET
 	@Path("/web")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Role> getAllRoles(@Context HttpServletRequest hsr) {
+    public List<Role> getAllRoles(@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
     	return rm.getAllRoles(userId);
     }
@@ -39,7 +41,7 @@ public class RestRole {
 	@GET
 	@Path("/m")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Role> getAllRolesMobile(@Context HttpServletRequest hsr) throws TokenValidationException {
+    public List<Role> getAllRolesMobile(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
 		return rm.getAllRoles(userId);
@@ -49,7 +51,7 @@ public class RestRole {
 	@Path("/web")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createRole(Role role, @Context HttpServletRequest hsr) {
+    public IdResponse createRole(Role role, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		role.setUser(u);
@@ -62,7 +64,7 @@ public class RestRole {
 	@Path("/m")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createRoleMobile(Role role, @Context HttpServletRequest hsr) throws TokenValidationException {
+    public IdResponse createRoleMobile(Role role, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		u.setId(am.validateToken(token));
@@ -73,9 +75,10 @@ public class RestRole {
     }
 	
 	@PUT
-	@Path("/web")
+	@Path("/web/{roleId}")
 	@Consumes(MediaType.APPLICATION_JSON)
-    public void updateRole(Role role, @Context HttpServletRequest hsr) {
+    public void updateRole(@PathParam("roleId") Long roleId,Role role, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+		role.setId(roleId);
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		role.setUser(u);
@@ -83,9 +86,10 @@ public class RestRole {
     }
 
 	@PUT
-	@Path("/m")
+	@Path("/m/{roleId}")
 	@Consumes(MediaType.APPLICATION_JSON)
-    public void updateRoleMobile(Role role, @Context HttpServletRequest hsr) throws TokenValidationException{
+    public void updateRoleMobile(@PathParam("roleId") Long roleId, Role role, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
+		role.setId(roleId);
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		u.setId(am.validateToken(token));
@@ -94,8 +98,8 @@ public class RestRole {
     }
 	
 	@DELETE
-	@Path("/web")
-    public void deleteRole(@QueryParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) {
+	@Path("/web/{roleId}")
+    public void deleteRole(@PathParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		Role deletedRole = new Role();
@@ -112,8 +116,8 @@ public class RestRole {
 		}
     }
 	@DELETE
-	@Path("/m")
-    public void deleteRoleMobile(@QueryParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) throws TokenValidationException {
+	@Path("/m/{roleId}")
+    public void deleteRoleMobile(@PathParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		u.setId(am.validateToken(token));

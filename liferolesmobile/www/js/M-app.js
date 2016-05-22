@@ -65,8 +65,11 @@ angular.module('liferolesApp').run(function($rootScope,$http,$state,TasksAndRole
 							}, 500);
 				$state.go("auth");
 				break;
+			case 409:
+				alert("Error occured on the server side. Possible due to data inconsistency. Please try to refresh your tasks and roles by clicking refresh button in settings. If the problem persists, please report it to liferoles.app@gmail.com.");
+				break;
 			case 500:
-				alert("Error occured on the server side. Please try to refresh your tasks and roles by clicking refresh button in settings. If the problem persists, please report it to liferoles.app@gmail.com.");
+				alert("Error occured on the server side. Please report it to liferoles.app@gmail.com.");
 				break;
 			default:
 				alert("Internet connection problem");
@@ -91,20 +94,4 @@ angular.module('liferolesApp').run(function($rootScope,$http,$state,TasksAndRole
 	function(response){
     	$rootScope.handleErrors(response);
     });
-});
-
-angular.module('liferolesApp').controller("rolesCtrl",function($scope,TasksAndRoles,$ionicSideMenuDelegate,$rootScope){
-	$scope.roles = TasksAndRoles.getRoles();
-	$rootScope.$on('dataReLoaded', function () {
-		$scope.roles = TasksAndRoles.getRoles();
-	});
-	$scope.openMenu = function(){
-		$ionicSideMenuDelegate.toggleLeft();
-	}
-	});
-
-angular.module('liferolesApp').controller("infoCtrl",function($scope,$ionicSideMenuDelegate){
-	$scope.openMenu = function(){
-		$ionicSideMenuDelegate.toggleLeft();
-	}
 });

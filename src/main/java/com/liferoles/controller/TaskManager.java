@@ -13,7 +13,9 @@ import javax.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.liferoles.model.*;
+import com.liferoles.exceptions.LiferolesRuntimeException;
+import com.liferoles.exceptions.PossibleDataInconsistencyException;
+import com.liferoles.model.Task;
 
 @LocalBean
 @Stateless
@@ -22,7 +24,7 @@ public class TaskManager {
 	@PersistenceContext(unitName = "Liferoles")
 	EntityManager em;
 	
-	public Long createTask(Task task){
+	public Long createTask(Task task) throws LiferolesRuntimeException{
 		Long id;
 		try{
 			em.persist(task);
@@ -30,35 +32,40 @@ public class TaskManager {
 			id = task.getId();
 		}catch (Exception e) {
 			logger.error("db error occured while creating " + task.toString(),e);
-			throw e;
+			throw new LiferolesRuntimeException(e);
 			}
 		logger.info(task.toString() + " created");
 		return id;
 	}
 	
-	public void deleteTask(Task task){
+	public void deleteTask(Task task) throws LiferolesRuntimeException{
 		try{
 			Task t = em.find(Task.class, task.getId());
 			em.remove(t);
-		}catch(Exception e){
+		}
+		catch(IllegalArgumentException e){
+			logger.warn("db error occured while deleting " + task.toString(),e);
+			throw new PossibleDataInconsistencyException("illegal argument exception when deleting task" + task.toString());
+		}
+		catch(Exception e){
 			logger.error("db error occured while deleting " + task.toString(),e);
-			throw e;
+			throw new LiferolesRuntimeException(e);
 		}
 		logger.info(task.toString() + " deleted");
 	}
 	
-	public void updateTask(Task task){
+	public void updateTask(Task task) throws LiferolesRuntimeException{
 		try{
 			em.merge(task);
 		}catch(Exception e){
 			logger.error("db error occured while updating " + task.toString(),e);
-			throw e;
+			throw new LiferolesRuntimeException(e);
 		}
 		logger.info(task.toString() + " updated");
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<Task> getTasksForWeek(Long userId, LocalDate mondayOfTheWeek){
+	public List<Task> getTasksForWeek(Long userId, LocalDate mondayOfTheWeek) throws LiferolesRuntimeException{
 		List<Task> taskList = null;
 		try{
 			Query query = em.createQuery("from Task where user.id = :id and date between :monday and :sunday))");
@@ -68,14 +75,34 @@ public class TaskManager {
 			taskList = query.getResultList();
 		}catch(Exception e){
 			logger.error("db error occured while retrieving tasks of user with id " + userId,e);
-			throw e;
+			throw new LiferolesRuntimeException(e);
 		}
 		logger.info("tasks of user with id " + userId + " retrieved");
 		return taskList;
 	}
 	
+	public void moveOldTasksToBacklog(Long userId,LocalDate fromDay) throws LiferolesRuntimeException{
+		try{
+			Query q = em.createQuery("update Task set date = null, time = null where user.id = :id and finished = false and date < :firstDay");
+			q.setParameter("id", userId);
+			q.setParameter("firstDay", fromDay);
+			q.executeUpdate();
+		}catch(Exception e){
+			logger.error("db error occured while moving tasks of user " + userId + " to backlog",e);
+			throw new LiferolesRuntimeException(e);
+		}
+		logger.info("tasks of user " + userId + " moved to backlog");
+	}
+	
+	/**
+	 * Returns list tasks older than specified date, organized into five lists according to the week to which particular tasks belongs.
+	 * @param userId
+	 * @param dateFrom	should be first day of last week
+	 * @return	list of five lists of tasks, 1:backloged, 2:future ()
+	 * @throws LiferolesRuntimeException
+	 */
 	@SuppressWarnings("unchecked")
-	public List<List<Task>> getInitTasks(Long userId,LocalDate dateFrom){
+	public List<List<Task>> getInitTasks(Long userId,LocalDate dateFrom) throws LiferolesRuntimeException{
 		List<Task> taskList;
 		try{
 			Query query = em.createQuery("from Task where user.id = :id and ((date is null) or (date >= :dateFrom))");
@@ -84,7 +111,7 @@ public class TaskManager {
 			taskList = query.getResultList();
 		}catch(Exception e){
 			logger.error("db error occured while retrieving tasks of user with id " + userId,e);
-			throw e;
+			throw new LiferolesRuntimeException(e);
 		}
 		List<Task> backlog = new ArrayList<Task>();
 		List<Task> future = new ArrayList<Task>();

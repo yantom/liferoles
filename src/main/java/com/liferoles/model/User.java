@@ -33,6 +33,10 @@ import com.liferoles.rest.JSON.serializers.UserPartialSerializer;
 @JsonDeserialize(using = UserPartialDeserializer.class)
 public class User implements Serializable{
     
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3816788789538663997L;
 	@SequenceGenerator(name="user_id", sequenceName="appuser_id_seq",allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_id")
 	@Id
@@ -44,6 +48,16 @@ public class User implements Serializable{
     private String password;
     @JsonIgnore
     private String salt;
+    
+    public User(){};
+    public User(Long id, String email, Day fd, String pm, String passwd, String salt){
+    	this.id = id;
+    	this.email = email;
+    	this.firstDayOfWeek = fd;
+    	this.personalMission = pm;
+    	this.password = passwd;
+    	this.salt = salt;
+    }
     
 	public Long getId() {
 		return id;

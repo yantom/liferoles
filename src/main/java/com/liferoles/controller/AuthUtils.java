@@ -14,28 +14,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.liferoles.SaltHashPair;
-import com.liferoles.exceptions.LifeRolesAuthException;
+import com.liferoles.exceptions.LiferolesRuntimeException;
 
 public class AuthUtils {
 	private static final Logger logger = LoggerFactory.getLogger(AuthUtils.class);
 	private static byte[] hashKey = new byte[64];
 	
-	public static void setHashKey() throws LifeRolesAuthException{
+	public static void setHashKey(){
 		try (BufferedInputStream bis = new BufferedInputStream(AuthManager.class.getClassLoader().getResourceAsStream("hashkey"))){
 			bis.read(hashKey);
 		} catch (IOException e) {
 			logger.error("unable to create hashkey",e);
-			throw new LifeRolesAuthException("unable to create hashkey",e);
+			throw new LiferolesRuntimeException("unable to create hashkey",e);
 		}
 	}
 	public static byte[] getHashKey(){
 		return hashKey;
 	}
-	public static String getRandomBase64(int bytes) throws LifeRolesAuthException{
+	public static String getRandomBase64(int bytes) throws LiferolesRuntimeException{
 		return Base64.getEncoder().encodeToString(getRandomBytes(bytes));
 	}
 	
-	public static String getRandomBase64Url(int bytes) throws LifeRolesAuthException{
+	public static String getRandomBase64Url(int bytes) throws LiferolesRuntimeException{
 		return Base64.getUrlEncoder().encodeToString(getRandomBytes(bytes));
 	}
 	/**
@@ -43,9 +43,9 @@ public class AuthUtils {
 	 * @param input	password or whatever input
 	 * @param inputSalt	if null new salt will be generated
 	 * @return	object with hash of input and salt
-	 * @throws LifeRolesAuthException
+	 * @throws LiferolesRuntimeException
 	 */
-	public static SaltHashPair computeHash(String input, String inputSalt) throws LifeRolesAuthException{
+	public static SaltHashPair computeHash(String input, String inputSalt) throws LiferolesRuntimeException{
 		char[] inputAsCharArray = input.toCharArray();
 		byte[] salt;
 		if(inputSalt == null)
@@ -60,7 +60,7 @@ public class AuthUtils {
 			skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 		} catch (NoSuchAlgorithmException e) {
 			logger.error("error occurred when computing hash",e);
-			throw new LifeRolesAuthException(e);
+			throw new LiferolesRuntimeException(e);
 			
 		}
 		byte[] hash;
@@ -68,20 +68,20 @@ public class AuthUtils {
 			hash = skf.generateSecret(spec).getEncoded();
 		} catch (InvalidKeySpecException e) {
 			logger.error("error occurred when computing hash",e);
-			throw new LifeRolesAuthException(e);
+			throw new LiferolesRuntimeException(e);
 		}
 		if(inputSalt == null)
 			return new SaltHashPair(Base64.getEncoder().encodeToString(salt),Base64.getEncoder().encodeToString(hash));
 		else
 			return new SaltHashPair(inputSalt,Base64.getEncoder().encodeToString(hash));
 	}
-	private static byte[] getRandomBytes(int bytes) throws LifeRolesAuthException {
+	private static byte[] getRandomBytes(int bytes) throws LiferolesRuntimeException {
 		SecureRandom sr;
 		try {
 			sr = SecureRandom.getInstance("SHA1PRNG");
 		} catch (NoSuchAlgorithmException e) {
-			logger.error("wtf",e);
-			throw new LifeRolesAuthException(e);
+			logger.error(e.toString(),e);
+			throw new LiferolesRuntimeException(e);
 		}
 		byte[] salt = new byte[bytes];
 		sr.nextBytes(salt);

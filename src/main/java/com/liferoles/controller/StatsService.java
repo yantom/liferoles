@@ -90,12 +90,14 @@ public abstract class StatsService<T> {
 		int effeciencyIndex;
 		LocalDate date;
 		LocalDate firstDate;
+		Boolean finished;
 		for (Object[] row : rowsFromDB) {
 			roleName = (String) row[2];
 			firstDate = (LocalDate) row[0];
 			date = (LocalDate) row[1];
+			finished = (Boolean)row[3];
 			weekOfMonthString = getWeekOfMonthString(firstDate);
-			effeciencyIndex = getEffeciencyIndex(firstDate, date);
+			effeciencyIndex = getEffeciencyIndex(firstDate, date, finished);
 			count = countOfTasksPerRole.get(roleName);
 			countOfTasksPerRole.put(roleName, count + 1);
 			count = countOfTasksPerRoleAndEffeciency[effeciencyIndex].get(roleName);
@@ -131,7 +133,7 @@ public abstract class StatsService<T> {
 		List<Object[]> rows = null;
 		try {
 			Query query = em.createQuery(
-					"select firstDate, date, role.name from Task where user.id = :userId and firstDate between :fromDate and :toDate");
+					"select firstDate, date, role.name, finished from Task where user.id = :userId and firstDate between :fromDate and :toDate");
 			query.setParameter("userId", userId);
 			query.setParameter("fromDate", timeInterval.getElement0());
 			query.setParameter("toDate", timeInterval.getElement1());
@@ -232,8 +234,8 @@ public abstract class StatsService<T> {
 	 *         in firstDate, 2 if task was completed within 3 days after
 	 *         firstDate, 3 otherwise
 	 */
-	private int getEffeciencyIndex(LocalDate firstDate, LocalDate date) {
-		if (date == null)
+	private int getEffeciencyIndex(LocalDate firstDate, LocalDate date, boolean finished) {
+		if(finished == false || date == null)
 			return 3;
 		if (date.isBefore(firstDate))
 			return 0;

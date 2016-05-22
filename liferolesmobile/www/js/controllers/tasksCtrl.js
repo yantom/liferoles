@@ -93,7 +93,7 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 	}
 	$scope.moveToBacklog = function(){
 		if (confirm("Move all old, uncompleted tasks to backlog? (last week and older)")){
-			$http.put(host + "/rest/users/"+platform+"/backlog/" + $scope.firstDayOfCurrentWeekDate.getFullYear() + "/" + ($scope.firstDayOfCurrentWeekDate.getMonth()+1) +"/"+ $scope.firstDayOfCurrentWeekDate.getDate(),{}).then(
+			$http.post(host + "/rest/tasks/"+platform+"/backlog/" + $scope.firstDayOfCurrentWeekDate.getFullYear() + "/" + ($scope.firstDayOfCurrentWeekDate.getMonth()+1) +"/"+ $scope.firstDayOfCurrentWeekDate.getDate(),{}).then(
 					function(){
 						TasksAndRoles.moveTasksToBacklog();
 					},
@@ -139,7 +139,7 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 			factoryIndex = -2;
 		else
 			factoryIndex = $scope.currentIndex;
-		$http.put(host+"/rest/tasks/"+platform,task).then(
+		$http.put(host+"/rest/tasks/"+platform+"/"+task.id,task).then(
 			function(response){
 				TasksAndRoles.updateTask(task,factoryIndex);
 				computeTasksCounts();
@@ -251,7 +251,7 @@ angular.module('liferolesApp').controller("tasksCtrl",function($scope,TasksAndRo
 		$timeout(function(){
 				$scope.animatedTaskId = null;
 				task.finished = !task.finished;
-				$http.put(host+"/rest/tasks/"+platform,task).then(
+				$http.put(host+"/rest/tasks/"+platform+"/"+task.id,task).then(
 			function(){},
 			function(response){
 				task.finished = !task.finished;

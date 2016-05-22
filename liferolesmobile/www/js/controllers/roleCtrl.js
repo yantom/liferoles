@@ -40,7 +40,7 @@ angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,
 			return;
 		}
 		if($scope.role.id != null){
-			$http.put(host+"/rest/roles/"+platform,$scope.role).then(
+			$http.put(host+"/rest/roles/"+platform+"/"+$scope.role.id,$scope.role).then(
 				function(){
 					TasksAndRoles.updateRole($scope.role);
 					if(platform=="m")
@@ -96,7 +96,7 @@ angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,
 						$scope.popover.show(document.getElementById("popover-beam"));
 						var stopListenHidden = $scope.$on('popover.hidden', function(){
 							if($scope.data.newRoleId != null){
-								$http.delete(host+"/rest/roles/"+platform+"?roleId="+$scope.role.id+"&newRoleId="+$scope.data.newRoleId).then(
+								$http.delete(host+"/rest/roles/"+platform+"/"+$scope.role.id+"?newRoleId="+$scope.data.newRoleId).then(
 									function(){
 										TasksAndRoles.moveTasksUnderOtherRole($scope.role.id,$scope.data.newRoleId);
 										TasksAndRoles.removeRoleById($scope.role.id);
@@ -105,6 +105,7 @@ angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,
 											$state.go("roles");
 										else
 											roleModal.hide();
+										$scope.data.newRoleId = null;
 									},
 									function(response){
 										$rootScope.handleErrors(response);
@@ -112,8 +113,9 @@ angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,
 											$state.go("roles");
 										else
 											roleModal.hide();
+										$scope.data.newRoleId = null;
 									});
-								$scope.data.newRoleId = null;
+								
 							}
 							stopListenHidden();
 						});
@@ -122,7 +124,7 @@ angular.module('liferolesApp').controller("roleCtrl",function($scope,$rootScope,
 				{
 					text: 'Delete',
 					onTap: function() {
-						$http.delete(host+"/rest/roles/"+platform+"?roleId="+$scope.role.id).then(
+						$http.delete(host+"/rest/roles/"+platform+"/"+$scope.role.id).then(
 							function(){
 								TasksAndRoles.deleteTasksByRoleId($scope.role.id);
 								TasksAndRoles.removeRoleById($scope.role.id);

@@ -11,7 +11,6 @@ public class TokenValidationExceptionMapper implements ExceptionMapper<TokenVali
 {
 	@Override
 	public Response toResponse(TokenValidationException exception) {
-		exception.printStackTrace();
 		return Response.status(403).build();
 	}
 }

@@ -42,7 +42,7 @@ angular.module('liferolesApp').controller("taskCtrl",function($scope,$rootScope,
 				});
 		}
 		else{
-			$http.put(host+"/rest/tasks/"+platform,$scope.task).then(
+			$http.put(host+"/rest/tasks/"+platform+"/"+$scope.task.id,$scope.task).then(
 				function(){
 					TasksAndRoles.updateTask($scope.task,$stateParams.factoryIndex);
 					$rootScope.$broadcast('updateCounts');
@@ -56,7 +56,7 @@ angular.module('liferolesApp').controller("taskCtrl",function($scope,$rootScope,
 	};
 	
 	$scope.deleteTask = function(){
-		$http.delete(host+"/rest/tasks/"+platform+"?taskId="+$scope.task.id).then(
+		$http.delete(host+"/rest/tasks/"+platform+"/"+$scope.task.id).then(
 			function(){
 				TasksAndRoles.removeTaskById($scope.task.id,$stateParams.factoryIndex);
 				$rootScope.$broadcast('updateCounts');

@@ -3,10 +3,7 @@ package com.liferoles.rest.JSON.objects.nvd3stats;
 import java.util.List;
 
 public class Nvd3BarChartDataItem {
-	@Override
-	public String toString() {
-		return "BarChartDataItem [key=" + key + ", values=" + values + "]";
-	}
+	
 	private String key;
 	private List<Nvd3BarChartDataValue> values;
 	
@@ -28,5 +25,9 @@ public class Nvd3BarChartDataItem {
 	}
 	public void setKey(String key) {
 		this.key = key;
+	}
+	@Override
+	public String toString() {
+		return "BarChartDataItem [key=" + key + ", values=" + values + "]";
 	}
 }
