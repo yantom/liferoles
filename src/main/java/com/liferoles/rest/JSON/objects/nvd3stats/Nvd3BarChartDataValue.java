@@ -3,33 +3,13 @@ package com.liferoles.rest.JSON.objects.nvd3stats;
 public class Nvd3BarChartDataValue {
 	private String x;
 	private int y;
-	
-	public Nvd3BarChartDataValue(){}
-	
-	public Nvd3BarChartDataValue(String x, int y){
-		this.x=x;
-		this.y=y;
+
+	public Nvd3BarChartDataValue() {
 	}
-	
-	public String getX() {
-		return x;
-	}
-	public void setX(String x) {
+
+	public Nvd3BarChartDataValue(String x, int y) {
 		this.x = x;
-	}
-	public int getY() {
-		return y;
-	}
-	public void setY(int y) {
 		this.y = y;
-	}
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((x == null) ? 0 : x.hashCode());
-		result = prime * result + y;
-		return result;
 	}
 
 	@Override
@@ -49,6 +29,31 @@ public class Nvd3BarChartDataValue {
 		if (y != other.y)
 			return false;
 		return true;
+	}
+
+	public String getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((x == null) ? 0 : x.hashCode());
+		result = prime * result + y;
+		return result;
+	}
+
+	public void setX(String x) {
+		this.x = x;
+	}
+
+	public void setY(int y) {
+		this.y = y;
 	}
 
 	@Override

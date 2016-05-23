@@ -4,31 +4,12 @@ public class Nvd3PieChartDataItem {
 	private String key;
 	private int y;
 
-	public Nvd3PieChartDataItem(){}
-	
-	public Nvd3PieChartDataItem(String key, int y){
-		this.key=key;
-		this.y=y;
+	public Nvd3PieChartDataItem() {
 	}
-	public int getY() {
-		return y;
-	}
-	public void setY(int y) {
-		this.y = y;
-	}
-	public String getKey() {
-		return key;
-	}
-	public void setKey(String key) {
+
+	public Nvd3PieChartDataItem(String key, int y) {
 		this.key = key;
-	}
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((key == null) ? 0 : key.hashCode());
-		result = prime * result + y;
-		return result;
+		this.y = y;
 	}
 
 	@Override
@@ -48,5 +29,30 @@ public class Nvd3PieChartDataItem {
 		if (y != other.y)
 			return false;
 		return true;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + y;
+		return result;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public void setY(int y) {
+		this.y = y;
 	}
 }

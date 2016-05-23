@@ -5,8 +5,6 @@
  */
 package com.liferoles.model;
 
-
-
 import java.io.Serializable;
 
 import javax.persistence.Entity;
@@ -22,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.liferoles.rest.JSON.serializers.UserPartialDeserializer;
 import com.liferoles.rest.JSON.serializers.UserPartialSerializer;
 
-
 /**
  *
  * @author Honzator
@@ -31,53 +28,34 @@ import com.liferoles.rest.JSON.serializers.UserPartialSerializer;
 @Table(name = "appuser")
 @JsonSerialize(using = UserPartialSerializer.class)
 @JsonDeserialize(using = UserPartialDeserializer.class)
-public class User implements Serializable{
-    
+public class User implements Serializable {
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3816788789538663997L;
-	@SequenceGenerator(name="user_id", sequenceName="appuser_id_seq",allocationSize = 1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_id")
+	@SequenceGenerator(name = "user_id", sequenceName = "appuser_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id")
 	@Id
 	private Long id;
-    private String email;
-    private Day firstDayOfWeek;
-    private String personalMission;
-    @JsonIgnore
-    private String password;
-    @JsonIgnore
-    private String salt;
-    
-    public User(){};
-    public User(Long id, String email, Day fd, String pm, String passwd, String salt){
-    	this.id = id;
-    	this.email = email;
-    	this.firstDayOfWeek = fd;
-    	this.personalMission = pm;
-    	this.password = passwd;
-    	this.salt = salt;
-    }
-    
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
+	private String email;
+	private Day firstDayOfWeek;
+	private String personalMission;
+	@JsonIgnore
+	private String password;
+	@JsonIgnore
+	private String salt;
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
+	public User() {
+	};
+
+	public User(Long id, String email, Day fd, String pm, String passwd, String salt) {
+		this.id = id;
+		this.email = email;
+		this.firstDayOfWeek = fd;
+		this.personalMission = pm;
+		this.password = passwd;
+		this.salt = salt;
 	}
 
 	@Override
@@ -96,38 +74,66 @@ public class User implements Serializable{
 			return false;
 		return true;
 	}
-	
-	@Override
-	public String toString(){
-		return "user with email: " + email;
+
+	public String getEmail() {
+		return email;
+	}
+
+	public Day getFirstDayOfWeek() {
+		return firstDayOfWeek;
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public String getPassword() {
 		return password;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public String getPersonalMission() {
+		return personalMission;
 	}
 
 	public String getSalt() {
 		return salt;
 	}
 
-	public void setSalt(String salt) {
-		this.salt = salt;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
 	}
-	public Day getFirstDayOfWeek() {
-		return firstDayOfWeek;
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
+
 	public void setFirstDayOfWeek(Day firstDayOfWeek) {
 		this.firstDayOfWeek = firstDayOfWeek;
 	}
-	public String getPersonalMission() {
-		return personalMission;
+
+	public void setId(Long id) {
+		this.id = id;
 	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	public void setPersonalMission(String personalMission) {
 		this.personalMission = personalMission;
 	}
-	
+
+	public void setSalt(String salt) {
+		this.salt = salt;
+	}
+
+	@Override
+	public String toString() {
+		return "user with email: " + email;
+	}
+
 }

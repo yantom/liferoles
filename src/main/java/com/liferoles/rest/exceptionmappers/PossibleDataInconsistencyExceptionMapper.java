@@ -7,7 +7,7 @@ import javax.ws.rs.ext.Provider;
 import com.liferoles.exceptions.PossibleDataInconsistencyException;
 
 @Provider
-public class PossibleDataInconsistencyExceptionMapper implements ExceptionMapper<PossibleDataInconsistencyException>{	
+public class PossibleDataInconsistencyExceptionMapper implements ExceptionMapper<PossibleDataInconsistencyException> {
 	@Override
 	public Response toResponse(PossibleDataInconsistencyException exception) {
 		exception.printStackTrace();

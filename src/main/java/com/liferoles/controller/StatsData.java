@@ -3,7 +3,6 @@ package com.liferoles.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * General class for holding the stats data.
  * 
@@ -26,9 +25,9 @@ import java.util.Map;
  * <p>
  * Map[] <b>countOfTasksPerWeekAndEffeciency</b> is similar to the previous,
  * just the Map Key is not a role name but a string representation of the number
- * of the week in month. Eg.
- * countOfTasksPerWeekAndEffeciency[2].get('Week 2') will return count of
- * tasks finished within 3 days after plan, in the second week of the month.
+ * of the week in month. Eg. countOfTasksPerWeekAndEffeciency[2].get('Week 2')
+ * will return count of tasks finished within 3 days after plan, in the second
+ * week of the month.
  * 
  * @author Honzator
  *
@@ -45,24 +44,24 @@ public class StatsData {
 		setCountOfTasksPerWeekAndEffeciency((Map<String, Integer>[]) new Map[4]);
 	}
 
+	public Map<String, Integer>[] getCountOfTasksPerRoleAndEffeciencyData() {
+		return countOfTasksPerRoleAndEffeciency;
+	}
+
 	public Map<String, Integer> getCountOfTasksPerRoleData() {
 		return countOfTasksPerRole;
+	}
+
+	public Map<String, Integer>[] getCountOfTasksPerWeekAndEffeciencyData() {
+		return countOfTasksPerWeekAndEffeciency;
 	}
 
 	public void setCountOfTasksPerRole(Map<String, Integer> countOfTasksPerRole) {
 		this.countOfTasksPerRole = countOfTasksPerRole;
 	}
 
-	public Map<String, Integer>[] getCountOfTasksPerRoleAndEffeciencyData() {
-		return countOfTasksPerRoleAndEffeciency;
-	}
-
 	public void setCountOfTasksPerRoleAndEffeciency(Map<String, Integer>[] countOfTasksPerRoleAndEffeciency) {
 		this.countOfTasksPerRoleAndEffeciency = countOfTasksPerRoleAndEffeciency;
-	}
-
-	public Map<String, Integer>[] getCountOfTasksPerWeekAndEffeciencyData() {
-		return countOfTasksPerWeekAndEffeciency;
 	}
 
 	public void setCountOfTasksPerWeekAndEffeciency(Map<String, Integer>[] countOfTasksPerWeekAndEffeciency) {

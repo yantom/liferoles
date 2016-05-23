@@ -26,67 +26,91 @@ public class RestUser {
 	private UserManager um;
 	@EJB
 	private AuthManager am;
-	
-	@GET
-	@Path("/m")
-	@Produces(MediaType.APPLICATION_JSON)
-	public User getUserJWT(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-		User u = um.getUserById(userId);
-		return u;
+
+	@POST
+	@Path("/web/tokensBlacklist")
+	public void blockUsersTokens(@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
+		am.addTokensToBlacklist(userId);
 	}
-	
+
 	@GET
 	@Path("/web")
 	@Produces(MediaType.APPLICATION_JSON)
-	public User getUser(@Context HttpServletRequest hsr) throws LiferolesRuntimeException{
+	public User getUser(@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		User u;
 		HttpSession session = hsr.getSession();
 		u = um.getUserByMail(hsr.getUserPrincipal().getName());
 		session.setAttribute("userId", u.getId());
 		return u;
 	}
-	
-	@POST
-	@Path("/web/tokensBlacklist")
-	public void blockUsersTokens(@Context HttpServletRequest hsr) throws LiferolesRuntimeException{
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		am.addTokensToBlacklist(userId);
+
+	@GET
+	@Path("/m")
+	@Produces(MediaType.APPLICATION_JSON)
+	public User getUserJWT(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		User u = um.getUserById(userId);
+		return u;
 	}
-	
+
 	@POST
 	@Path("/web/logout")
-	public void logoutUser(@Context HttpServletRequest hsr) throws ServletException{
+	public void logoutUser(@Context HttpServletRequest hsr) throws ServletException {
 		hsr.logout();
 	}
-	
+
 	@POST
 	@Path("/m/logout")
-	public void logoutUserMobile(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
+	public void logoutUserMobile(@Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		am.logoutMobileUser(token);
 	}
-	
+
 	@POST
-	@Path("/m/mail")
+	@Path("/m/data")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserEmailM(User u,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException, WrongCredentialsException{
+	public void updateUserDataM(User u, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
 		u.setId(userId);
-		if(am.checkPassword(u.getPassword(), u.getId()))
+		um.updateUserData(u);
+	}
+
+	@POST
+	@Path("/web/data")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateUserDataW(User u, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
+		u.setId(userId);
+		um.updateUserData(u);
+	}
+
+	@POST
+	@Path("/m/mail")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateUserEmailM(User u, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException, WrongCredentialsException {
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		u.setId(userId);
+		if (am.checkPassword(u.getPassword(), u.getId()))
 			um.updateUserEmail(u);
 		else
 			throw new WrongCredentialsException("wrong credentials");
 	}
+
 	@POST
 	@Path("/web/mail")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserEmailW(User u,@Context HttpServletRequest hsr) throws  LiferolesRuntimeException, WrongCredentialsException{
+	public void updateUserEmailW(User u, @Context HttpServletRequest hsr)
+			throws LiferolesRuntimeException, WrongCredentialsException {
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
 		u.setId(userId);
-		if(am.checkPassword(u.getPassword(), u.getId()))
+		if (am.checkPassword(u.getPassword(), u.getId()))
 			um.updateUserEmail(u);
 		else
 			throw new WrongCredentialsException("wrong credentials");
@@ -95,49 +119,33 @@ public class RestUser {
 	@POST
 	@Path("/m/password")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserPasswordM(PasswordChange pc,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException, WrongCredentialsException{
+	public void updateUserPasswordM(PasswordChange pc, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException, WrongCredentialsException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
 		User u = new User();
 		u.setId(userId);
 		u.setPassword(pc.getOldP());
-		if(am.checkPassword(u.getPassword(), u.getId())){
+		if (am.checkPassword(u.getPassword(), u.getId())) {
 			u.setPassword(pc.getNewP());
 			um.updateUserPassword(u);
-		}
-		else
+		} else
 			throw new WrongCredentialsException("wrong credentials");
 	}
+
 	@POST
 	@Path("/web/password")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserPasswordW(PasswordChange pc,@Context HttpServletRequest hsr) throws  LiferolesRuntimeException, WrongCredentialsException{
+	public void updateUserPasswordW(PasswordChange pc, @Context HttpServletRequest hsr)
+			throws LiferolesRuntimeException, WrongCredentialsException {
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
 		User u = new User();
 		u.setId(userId);
 		u.setPassword(pc.getOldP());
-		if(am.checkPassword(u.getPassword(), u.getId())){
+		if (am.checkPassword(u.getPassword(), u.getId())) {
 			u.setPassword(pc.getNewP());
 			um.updateUserPassword(u);
-		}
-		else
+		} else
 			throw new WrongCredentialsException("wrong credentials");
-	}
-	@POST
-	@Path("/m/data")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserDataM(User u,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-		u.setId(userId);
-		um.updateUserData(u);
-	}
-	@POST
-	@Path("/web/data")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUserDataW(User u,@Context HttpServletRequest hsr) throws  LiferolesRuntimeException{
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		u.setId(userId);
-		um.updateUserData(u);
 	}
 }

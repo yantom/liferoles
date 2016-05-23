@@ -9,10 +9,11 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class LocalTimeDeserializer extends JsonDeserializer<LocalTime>{
+public class LocalTimeDeserializer extends JsonDeserializer<LocalTime> {
 
 	@Override
-	public LocalTime deserialize(JsonParser jp, DeserializationContext arg1)throws IOException, JsonProcessingException {
+	public LocalTime deserialize(JsonParser jp, DeserializationContext arg1)
+			throws IOException, JsonProcessingException {
 		JsonNode node = jp.getCodec().readTree(jp);
 		return LocalTime.of(node.get("hours").asInt(), node.get("minutes").asInt());
 	}

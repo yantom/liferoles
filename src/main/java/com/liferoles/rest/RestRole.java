@@ -30,41 +30,26 @@ public class RestRole {
 	private RoleManager rm;
 	@EJB
 	private AuthManager am;
-	@GET
-	@Path("/web")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Role> getAllRoles(@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-    	return rm.getAllRoles(userId);
-    }
-	
-	@GET
-	@Path("/m")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Role> getAllRolesMobile(@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-		return rm.getAllRoles(userId);
-    }
-	
+
 	@POST
 	@Path("/web")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createRole(Role role, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+	public IdResponse createRole(Role role, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		role.setUser(u);
 		IdResponse id = new IdResponse();
 		id.setId(rm.createRole(role));
 		return id;
-    }
-	
+	}
+
 	@POST
 	@Path("/m")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createRoleMobile(Role role, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
+	public IdResponse createRoleMobile(Role role, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		u.setId(am.validateToken(token));
@@ -72,66 +57,87 @@ public class RestRole {
 		IdResponse id = new IdResponse();
 		id.setId(rm.createRole(role));
 		return id;
-    }
-	
+	}
+
+	@DELETE
+	@Path("/web/{roleId}")
+	public void deleteRole(@PathParam("roleId") Long roleId, @QueryParam("newRoleId") Long newRoleId,
+			@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+		User u = new User();
+		u.setId((Long) hsr.getSession().getAttribute("userId"));
+		Role deletedRole = new Role();
+		deletedRole.setId(roleId);
+		deletedRole.setUser(u);
+		if (newRoleId == null) {
+			rm.deleteRole(deletedRole);
+		} else {
+			Role newRole = new Role();
+			newRole.setId(newRoleId);
+			newRole.setUser(u);
+			rm.deleteRole(deletedRole, newRole);
+		}
+	}
+
+	@DELETE
+	@Path("/m/{roleId}")
+	public void deleteRoleMobile(@PathParam("roleId") Long roleId, @QueryParam("newRoleId") Long newRoleId,
+			@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
+		User u = new User();
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		u.setId(am.validateToken(token));
+		Role deletedRole = new Role();
+		deletedRole.setId(roleId);
+		deletedRole.setUser(u);
+		if (newRoleId == null) {
+			rm.deleteRole(deletedRole);
+		} else {
+			Role newRole = new Role();
+			newRole.setId(newRoleId);
+			newRole.setUser(u);
+			rm.deleteRole(deletedRole, newRole);
+		}
+	}
+
+	@GET
+	@Path("/web")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<Role> getAllRoles(@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
+		return rm.getAllRoles(userId);
+	}
+
+	@GET
+	@Path("/m")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<Role> getAllRolesMobile(@Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		return rm.getAllRoles(userId);
+	}
+
 	@PUT
 	@Path("/web/{roleId}")
 	@Consumes(MediaType.APPLICATION_JSON)
-    public void updateRole(@PathParam("roleId") Long roleId,Role role, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+	public void updateRole(@PathParam("roleId") Long roleId, Role role, @Context HttpServletRequest hsr)
+			throws LiferolesRuntimeException {
 		role.setId(roleId);
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		role.setUser(u);
 		rm.updateRole(role);
-    }
+	}
 
 	@PUT
 	@Path("/m/{roleId}")
 	@Consumes(MediaType.APPLICATION_JSON)
-    public void updateRoleMobile(@PathParam("roleId") Long roleId, Role role, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
+	public void updateRoleMobile(@PathParam("roleId") Long roleId, Role role, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
 		role.setId(roleId);
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		u.setId(am.validateToken(token));
 		role.setUser(u);
 		rm.updateRole(role);
-    }
-	
-	@DELETE
-	@Path("/web/{roleId}")
-    public void deleteRole(@PathParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
-		User u = new User();
-		u.setId((Long) hsr.getSession().getAttribute("userId"));
-		Role deletedRole = new Role();
-		deletedRole.setId(roleId);
-		deletedRole.setUser(u);
-		if(newRoleId == null){
-			rm.deleteRole(deletedRole);
-		}
-		else{
-			Role newRole = new Role();
-			newRole.setId(newRoleId);
-			newRole.setUser(u);
-			rm.deleteRole(deletedRole, newRole);
-		}
-    }
-	@DELETE
-	@Path("/m/{roleId}")
-    public void deleteRoleMobile(@PathParam("roleId") Long roleId,@QueryParam("newRoleId") Long newRoleId, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
-		User u = new User();
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		u.setId(am.validateToken(token));
-		Role deletedRole = new Role();
-		deletedRole.setId(roleId);
-		deletedRole.setUser(u);
-		if(newRoleId == null){
-			rm.deleteRole(deletedRole);
-		}
-		else{
-			Role newRole = new Role();
-			newRole.setId(newRoleId);
-			newRole.setUser(u);
-			rm.deleteRole(deletedRole, newRole);
-		}
-    }
+	}
 }

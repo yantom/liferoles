@@ -7,8 +7,7 @@ import javax.ws.rs.ext.Provider;
 import com.liferoles.exceptions.LiferolesRuntimeException;
 
 @Provider
-public class LiferolesRuntimeExceptionMapper implements ExceptionMapper<LiferolesRuntimeException> 
-{
+public class LiferolesRuntimeExceptionMapper implements ExceptionMapper<LiferolesRuntimeException> {
 	@Override
 	public Response toResponse(LiferolesRuntimeException exception) {
 		exception.printStackTrace();

@@ -9,14 +9,14 @@ import com.liferoles.model.User;
 
 public class UserPartialSerializer extends JsonSerializer<User> {
 	@Override
-	public void serialize(User value, JsonGenerator jgen, SerializerProvider provider) throws IOException{
+	public void serialize(User value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 		jgen.writeStartObject();
 		jgen.writeStringField("email", value.getEmail());
-		if(value.getFirstDayOfWeek() == null)
+		if (value.getFirstDayOfWeek() == null)
 			jgen.writeNumberField("firstDayOfWeek", 0);
 		else
 			jgen.writeNumberField("firstDayOfWeek", value.getFirstDayOfWeek().ordinal());
 		jgen.writeStringField("personalMission", value.getPersonalMission());
-        jgen.writeEndObject();
-    }
+		jgen.writeEndObject();
+	}
 }

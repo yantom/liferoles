@@ -6,7 +6,7 @@ import javax.servlet.ServletContextListener;
 import com.liferoles.controller.AuthUtils;
 import com.liferoles.exceptions.LiferolesRuntimeException;
 
-public class StartListener implements ServletContextListener{
+public class StartListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent ev) {

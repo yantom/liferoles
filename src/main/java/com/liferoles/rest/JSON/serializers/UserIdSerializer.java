@@ -10,9 +10,9 @@ import com.liferoles.model.User;
 
 public class UserIdSerializer extends JsonSerializer<User> {
 	@Override
-	public void serialize(User value, JsonGenerator jgen, SerializerProvider provider) throws IOException{
+	public void serialize(User value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 		jgen.writeStartObject();
 		jgen.writeNumberField("id", value.getId());
-        jgen.writeEndObject();
-    }
+		jgen.writeEndObject();
+	}
 }

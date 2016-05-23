@@ -35,63 +35,26 @@ public class RestTask {
 	private AuthManager am;
 	@EJB
 	private Nvd3StatsService nvd3Service;
-	
-	@GET
-	@Path("/web/{year}/{month}/{day}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<List<Task>> getTasks(@Context HttpServletRequest hsr, @PathParam("year") int year, @PathParam("month") int month, @PathParam("day") int day) throws LiferolesRuntimeException {
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-    	LocalDate dateFrom = LocalDate.of(year, month, day);
-		return tm.getInitTasks(userId,dateFrom);
-    }
-	
-	@GET
-	@Path("/m/{year}/{month}/{day}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<List<Task>> getTasksMobile(@Context HttpServletRequest hsr, @PathParam("year") int year, @PathParam("month") int month, @PathParam("day") int day) throws TokenValidationException, LiferolesRuntimeException {
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-    	LocalDate dateFrom = LocalDate.of(year, month, day);
-		return tm.getInitTasks(userId,dateFrom);
-    }
-	
-	@GET
-	@Path("/week/web/{year}/{month}/{day}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Task> getTasksPerWeek(@Context HttpServletRequest hsr, @PathParam("year") int year, @PathParam("month") int month, @PathParam("day") int day) throws LiferolesRuntimeException {
-		Long userId = (Long) hsr.getSession().getAttribute("userId");
-    	LocalDate dateFrom = LocalDate.of(year, month, day);
-		return tm.getTasksForWeek(userId,dateFrom);
-    }
-	
-	@GET
-	@Path("/week/m/{year}/{month}/{day}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Task> getTasksPerWeekMobile(@Context HttpServletRequest hsr, @PathParam("year") int year, @PathParam("month") int month, @PathParam("day") int day) throws TokenValidationException, LiferolesRuntimeException {
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		Long userId = am.validateToken(token);
-    	LocalDate dateFrom = LocalDate.of(year, month, day);
-		return tm.getTasksForWeek(userId,dateFrom);
-    }
-	
+
 	@POST
 	@Path("/web")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createTask(Task task, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+	public IdResponse createTask(Task task, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		task.setUser(u);
 		IdResponse id = new IdResponse();
 		id.setId(tm.createTask(task));
 		return id;
-    }
-	
+	}
+
 	@POST
 	@Path("/m")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-    public IdResponse createTaskMobile(Task task, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
+	public IdResponse createTaskMobile(Task task, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
 		User u = new User();
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		u.setId(am.validateToken(token));
@@ -99,45 +62,24 @@ public class RestTask {
 		IdResponse id = new IdResponse();
 		id.setId(tm.createTask(task));
 		return id;
-    }
-	
-	@PUT
-	@Path("/web/{taskId}")
-	@Consumes(MediaType.APPLICATION_JSON)
-    public void updateTask(@PathParam("taskId") Long taskId, Task task, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
-		User u = new User();
-		task.setId(taskId);
-		u.setId((Long) hsr.getSession().getAttribute("userId"));
-		task.setUser(u);
-		tm.updateTask(task);
-    }
-	
-	@PUT
-	@Path("/m/{taskId}")
-	@Consumes(MediaType.APPLICATION_JSON)
-    public void updateTaskMobile(@PathParam("taskId") Long taskId, Task task, @Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
-		User u = new User();
-		task.setId(taskId);
-		String token = (hsr.getHeader("Authorization")).split(" ")[1];
-		u.setId(am.validateToken(token));
-		task.setUser(u);
-		tm.updateTask(task);
-    }
-	
+	}
+
 	@DELETE
 	@Path("/web/{taskId}")
-    public void deleteTask(@PathParam("taskId") Long taskId,@Context HttpServletRequest hsr) throws LiferolesRuntimeException {
+	public void deleteTask(@PathParam("taskId") Long taskId, @Context HttpServletRequest hsr)
+			throws LiferolesRuntimeException {
 		Task t = new Task();
 		t.setId(taskId);
 		User u = new User();
 		u.setId((Long) hsr.getSession().getAttribute("userId"));
 		t.setUser(u);
 		tm.deleteTask(t);
-    }
+	}
 
 	@DELETE
 	@Path("/m/{taskId}")
-    public void deleteTaskMobile(@PathParam("taskId") Long taskId,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
+	public void deleteTaskMobile(@PathParam("taskId") Long taskId, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
 		Task t = new Task();
 		t.setId(taskId);
 		User u = new User();
@@ -145,47 +87,122 @@ public class RestTask {
 		u.setId(am.validateToken(token));
 		t.setUser(u);
 		tm.deleteTask(t);
-    }
-	
+	}
+
 	@GET
 	@Path("/web/stats/{year}/{month}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Nvd3ChartsData getStats(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean currentMonth,@Context HttpServletRequest hsr){
-		Nvd3ChartsData chartsData= null;
+	public Nvd3ChartsData getStats(@PathParam("year") int year, @PathParam("month") int month,
+			@QueryParam("last") boolean currentMonth, @Context HttpServletRequest hsr) {
+		Nvd3ChartsData chartsData = null;
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		if(currentMonth == true)
-			chartsData = nvd3Service.getJsonStatsData(year, month, true,userId);
+		if (currentMonth == true)
+			chartsData = nvd3Service.getJsonStatsData(year, month, true, userId);
 		else
-			chartsData = nvd3Service.getJsonStatsData(year, month, false,userId);
+			chartsData = nvd3Service.getJsonStatsData(year, month, false, userId);
 		return chartsData;
 	}
-	
+
 	@GET
 	@Path("/m/stats/{year}/{month}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Nvd3ChartsData getStatsJWT(@PathParam("year") int year,@PathParam("month") int month, @QueryParam("last") boolean currentMonth,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException{
+	public Nvd3ChartsData getStatsJWT(@PathParam("year") int year, @PathParam("month") int month,
+			@QueryParam("last") boolean currentMonth, @Context HttpServletRequest hsr)
+					throws TokenValidationException, LiferolesRuntimeException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
-		Nvd3ChartsData chartsData= null;
-		if(currentMonth == true)
-			chartsData = nvd3Service.getJsonStatsData(year, month, true,userId);
+		Nvd3ChartsData chartsData = null;
+		if (currentMonth == true)
+			chartsData = nvd3Service.getJsonStatsData(year, month, true, userId);
 		else
-			chartsData = nvd3Service.getJsonStatsData(year, month, false,userId);
+			chartsData = nvd3Service.getJsonStatsData(year, month, false, userId);
 		return chartsData;
 	}
-	
-	@POST
-	@Path("/m/backlog/{year}/{month}/{day}")
-	public void moveOldTasksToBacklogMobile(@PathParam("year") int year,@PathParam("month") int month,@PathParam("day") int day,@Context HttpServletRequest hsr) throws TokenValidationException, LiferolesRuntimeException {
+
+	@GET
+	@Path("/web/{year}/{month}/{day}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<List<Task>> getTasks(@Context HttpServletRequest hsr, @PathParam("year") int year,
+			@PathParam("month") int month, @PathParam("day") int day) throws LiferolesRuntimeException {
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
+		LocalDate dateFrom = LocalDate.of(year, month, day);
+		return tm.getInitTasks(userId, dateFrom);
+	}
+
+	@GET
+	@Path("/m/{year}/{month}/{day}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<List<Task>> getTasksMobile(@Context HttpServletRequest hsr, @PathParam("year") int year,
+			@PathParam("month") int month, @PathParam("day") int day)
+					throws TokenValidationException, LiferolesRuntimeException {
 		String token = (hsr.getHeader("Authorization")).split(" ")[1];
 		Long userId = am.validateToken(token);
-		tm.moveOldTasksToBacklog(userId,LocalDate.of(year, month, day));
+		LocalDate dateFrom = LocalDate.of(year, month, day);
+		return tm.getInitTasks(userId, dateFrom);
 	}
-	
+
+	@GET
+	@Path("/week/web/{year}/{month}/{day}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<Task> getTasksPerWeek(@Context HttpServletRequest hsr, @PathParam("year") int year,
+			@PathParam("month") int month, @PathParam("day") int day) throws LiferolesRuntimeException {
+		Long userId = (Long) hsr.getSession().getAttribute("userId");
+		LocalDate dateFrom = LocalDate.of(year, month, day);
+		return tm.getTasksForWeek(userId, dateFrom);
+	}
+
+	@GET
+	@Path("/week/m/{year}/{month}/{day}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<Task> getTasksPerWeekMobile(@Context HttpServletRequest hsr, @PathParam("year") int year,
+			@PathParam("month") int month, @PathParam("day") int day)
+					throws TokenValidationException, LiferolesRuntimeException {
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		LocalDate dateFrom = LocalDate.of(year, month, day);
+		return tm.getTasksForWeek(userId, dateFrom);
+	}
+
 	@POST
 	@Path("/web/backlog/{year}/{month}/{day}")
-	public void moveOldTasksToBacklog(@PathParam("year") int year,@PathParam("month") int month,@PathParam("day") int day,@Context HttpServletRequest hsr) throws LiferolesRuntimeException{
+	public void moveOldTasksToBacklog(@PathParam("year") int year, @PathParam("month") int month,
+			@PathParam("day") int day, @Context HttpServletRequest hsr) throws LiferolesRuntimeException {
 		Long userId = (Long) hsr.getSession().getAttribute("userId");
-		tm.moveOldTasksToBacklog(userId,LocalDate.of(year, month, day));
+		tm.moveOldTasksToBacklog(userId, LocalDate.of(year, month, day));
+	}
+
+	@POST
+	@Path("/m/backlog/{year}/{month}/{day}")
+	public void moveOldTasksToBacklogMobile(@PathParam("year") int year, @PathParam("month") int month,
+			@PathParam("day") int day, @Context HttpServletRequest hsr)
+					throws TokenValidationException, LiferolesRuntimeException {
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		Long userId = am.validateToken(token);
+		tm.moveOldTasksToBacklog(userId, LocalDate.of(year, month, day));
+	}
+
+	@PUT
+	@Path("/web/{taskId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateTask(@PathParam("taskId") Long taskId, Task task, @Context HttpServletRequest hsr)
+			throws LiferolesRuntimeException {
+		User u = new User();
+		task.setId(taskId);
+		u.setId((Long) hsr.getSession().getAttribute("userId"));
+		task.setUser(u);
+		tm.updateTask(task);
+	}
+
+	@PUT
+	@Path("/m/{taskId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateTaskMobile(@PathParam("taskId") Long taskId, Task task, @Context HttpServletRequest hsr)
+			throws TokenValidationException, LiferolesRuntimeException {
+		User u = new User();
+		task.setId(taskId);
+		String token = (hsr.getHeader("Authorization")).split(" ")[1];
+		u.setId(am.validateToken(token));
+		task.setUser(u);
+		tm.updateTask(task);
 	}
 }

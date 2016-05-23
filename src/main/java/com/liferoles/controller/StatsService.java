@@ -15,6 +15,8 @@ import javax.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liferoles.Pair;
+
 /**
  * This class computes month statistics for user. The purpose is to provide
  * general {@link com.liferoles.controller.StatsData} object, which is then
@@ -32,119 +34,21 @@ public abstract class StatsService<T> {
 	@PersistenceContext(unitName = "Liferoles")
 	EntityManager em;
 
-	public abstract T getJsonStatsData(int year, int month, boolean currentMonth, Long userId);
-
-	/**
-	 * Retrieves StatsData object filled with statistics for the given month and
-	 * user.
-	 * 
-	 * @param year
-	 *            year for which statistics should be computed
-	 * @param month
-	 *            month for which statistics should be computed
-	 * @param currentMonth
-	 *            true if the month for which statistics should be computed is a
-	 *            current month
-	 * @param userId
-	 * @return StatsData object
-	 */
-	@SuppressWarnings("unchecked")
-	public StatsData getStatsData(int year, int month, boolean currentMonth, Long userId) {
-		int countOfWeeksInMonth = computeCountOfWeeksInMonth(year, month);
-		List<Object[]> rowsFromDB = getDataForMonthStatsFromDB(year, month, currentMonth, userId);
-
-		if (rowsFromDB.size() == 0)
-			return null;
-		// initialize maps
-		Map<String, Integer> countOfTasksPerRole = new HashMap<>();
-		Map<String, Integer>[] countOfTasksPerRoleAndEffeciency = (Map<String, Integer>[]) new Map[4];
-		Map<String, Integer>[] countOfTasksPerWeekAndEffeciency = (Map<String, Integer>[]) new Map[4];
-		
-		for(int i=0;i<4;i++){
-			countOfTasksPerRoleAndEffeciency[i] = new HashMap<String,Integer>();
-			countOfTasksPerWeekAndEffeciency[i] = new HashMap<String,Integer>();
+	private int computeCountOfWeeksInMonth(int year, int month) {
+		LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
+		int nextMonth;
+		int nextMonthYear;
+		if (month == 12) {
+			nextMonth = 1;
+			nextMonthYear = year + 1;
+		} else {
+			nextMonth = month + 1;
+			nextMonthYear = year;
 		}
-		
-		Set<String> namesOfRoles = new HashSet<>();
-		for (Object[] row : rowsFromDB) {
-			namesOfRoles.add((String) row[2]);
-		}
-		
-		for (String roleName : namesOfRoles) {
-			countOfTasksPerRole.put(roleName, 0);
-			for(int i =0; i<4; i++){
-				countOfTasksPerRoleAndEffeciency[i].put(roleName, 0);
-			}
-		}
-		
-		for (int i = 1; i <= countOfWeeksInMonth; i++) {
-			for(int j=0;j<4;j++){
-				countOfTasksPerWeekAndEffeciency[j].put(String.format("Week %d", i), 0);
-			}
-		}
-
-		// fill maps with counts
-		Integer count;
-		String roleName;
-		String weekOfMonthString;
-		int effeciencyIndex;
-		LocalDate date;
-		LocalDate firstDate;
-		Boolean finished;
-		for (Object[] row : rowsFromDB) {
-			roleName = (String) row[2];
-			firstDate = (LocalDate) row[0];
-			date = (LocalDate) row[1];
-			finished = (Boolean)row[3];
-			weekOfMonthString = getWeekOfMonthString(firstDate);
-			effeciencyIndex = getEffeciencyIndex(firstDate, date, finished);
-			count = countOfTasksPerRole.get(roleName);
-			countOfTasksPerRole.put(roleName, count + 1);
-			count = countOfTasksPerRoleAndEffeciency[effeciencyIndex].get(roleName);
-			countOfTasksPerRoleAndEffeciency[effeciencyIndex].put(roleName, count + 1);
-			count = countOfTasksPerWeekAndEffeciency[effeciencyIndex].get(weekOfMonthString);
-			countOfTasksPerWeekAndEffeciency[effeciencyIndex].put(weekOfMonthString, count + 1);
-		}
-
-		// fill and retrieve StatsData object
-		StatsData sd = new StatsData();
-		sd.setCountOfTasksPerRole(countOfTasksPerRole);
-		sd.setCountOfTasksPerRoleAndEffeciency(countOfTasksPerRoleAndEffeciency);
-		sd.setCountOfTasksPerWeekAndEffeciency(countOfTasksPerWeekAndEffeciency);
-		return sd;
-	}
-
-	/**
-	 * Retrieves data for month statistics.
-	 * 
-	 * @param year
-	 *            year for which statistics should be computed
-	 * @param month
-	 *            month for which statistics should be computed
-	 * @param currentMonth
-	 *            true if the month for which statistics should be computed is a
-	 *            current month
-	 * @param userId
-	 * @return list with rows from database
-	 */
-	@SuppressWarnings("unchecked")
-	private List<Object[]> getDataForMonthStatsFromDB(int year, int month, boolean currentMonth, Long userId) {
-		Pair<LocalDate, LocalDate> timeInterval = computeTimeInterval(year, month, currentMonth);
-		List<Object[]> rows = null;
-		try {
-			Query query = em.createQuery(
-					"select firstDate, date, role.name, finished from Task where user.id = :userId and firstDate between :fromDate and :toDate");
-			query.setParameter("userId", userId);
-			query.setParameter("fromDate", timeInterval.getElement0());
-			query.setParameter("toDate", timeInterval.getElement1());
-			rows = query.getResultList();
-		} catch (Exception e) {
-			logger.error("db error occured while retrieving tasks for statistic from date " + timeInterval.getElement0()
-					+ " to date " + timeInterval.getElement1() + " userId: " + userId);
-			throw e;
-		}
-		logger.info("tasks for statistics of user with id " + userId + " retrieved");
-		return rows;
+		LocalDate firstDayOfNextMonth = LocalDate.of(nextMonthYear, nextMonth, 1);
+		LocalDate dateFrom = firstDayOfMonth.minusDays(firstDayOfMonth.getDayOfWeek().getValue() - 1);
+		LocalDate dateTo = firstDayOfNextMonth.minusDays(firstDayOfNextMonth.getDayOfWeek().getValue());
+		return (int) ChronoUnit.WEEKS.between(dateFrom, dateTo.plusDays(1));
 	}
 
 	/**
@@ -190,21 +94,141 @@ public abstract class StatsService<T> {
 		return Pair.createPair(dateFrom, dateTo);
 	}
 
-	private int computeCountOfWeeksInMonth(int year, int month) {
-		LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
-		int nextMonth;
-		int nextMonthYear;
-		if (month == 12) {
-			nextMonth = 1;
-			nextMonthYear = year + 1;
-		} else {
-			nextMonth = month + 1;
-			nextMonthYear = year;
+	/**
+	 * Retrieves data for month statistics.
+	 * 
+	 * @param year
+	 *            year for which statistics should be computed
+	 * @param month
+	 *            month for which statistics should be computed
+	 * @param currentMonth
+	 *            true if the month for which statistics should be computed is a
+	 *            current month
+	 * @param userId
+	 * @return list with rows from database
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Object[]> getDataForMonthStatsFromDB(int year, int month, boolean currentMonth, Long userId) {
+		Pair<LocalDate, LocalDate> timeInterval = computeTimeInterval(year, month, currentMonth);
+		List<Object[]> rows = null;
+		try {
+			Query query = em.createQuery(
+					"select firstDate, date, role.name, finished from Task where user.id = :userId and firstDate between :fromDate and :toDate");
+			query.setParameter("userId", userId);
+			query.setParameter("fromDate", timeInterval.getElement0());
+			query.setParameter("toDate", timeInterval.getElement1());
+			rows = query.getResultList();
+		} catch (Exception e) {
+			logger.error("db error occured while retrieving tasks for statistic from date " + timeInterval.getElement0()
+					+ " to date " + timeInterval.getElement1() + " userId: " + userId);
+			throw e;
 		}
-		LocalDate firstDayOfNextMonth = LocalDate.of(nextMonthYear, nextMonth, 1);
-		LocalDate dateFrom = firstDayOfMonth.minusDays(firstDayOfMonth.getDayOfWeek().getValue() - 1);
-		LocalDate dateTo = firstDayOfNextMonth.minusDays(firstDayOfNextMonth.getDayOfWeek().getValue());
-		return (int) ChronoUnit.WEEKS.between(dateFrom, dateTo.plusDays(1));
+		logger.info("tasks for statistics of user with id " + userId + " retrieved");
+		return rows;
+	}
+
+	/**
+	 * 
+	 * @param firstDate
+	 *            date on which the task was initially planed
+	 * @param date
+	 *            date of task's completion
+	 * @return 0 if task was completed before firstDate, 1 if task was completed
+	 *         in firstDate, 2 if task was completed within 3 days after
+	 *         firstDate, 3 otherwise
+	 */
+	private int getEffeciencyIndex(LocalDate firstDate, LocalDate date, boolean finished) {
+		if (finished == false || date == null)
+			return 3;
+		if (date.isBefore(firstDate))
+			return 0;
+		if (date.equals(firstDate))
+			return 1;
+		if (date.isBefore(firstDate.plusDays(4)))
+			return 2;
+		return 3;
+	}
+
+	public abstract T getJsonStatsData(int year, int month, boolean currentMonth, Long userId);
+
+	/**
+	 * Retrieves StatsData object filled with statistics for the given month and
+	 * user.
+	 * 
+	 * @param year
+	 *            year for which statistics should be computed
+	 * @param month
+	 *            month for which statistics should be computed
+	 * @param currentMonth
+	 *            true if the month for which statistics should be computed is a
+	 *            current month
+	 * @param userId
+	 * @return StatsData object
+	 */
+	@SuppressWarnings("unchecked")
+	public StatsData getStatsData(int year, int month, boolean currentMonth, Long userId) {
+		int countOfWeeksInMonth = computeCountOfWeeksInMonth(year, month);
+		List<Object[]> rowsFromDB = getDataForMonthStatsFromDB(year, month, currentMonth, userId);
+
+		if (rowsFromDB.size() == 0)
+			return null;
+		// initialize maps
+		Map<String, Integer> countOfTasksPerRole = new HashMap<>();
+		Map<String, Integer>[] countOfTasksPerRoleAndEffeciency = (Map<String, Integer>[]) new Map[4];
+		Map<String, Integer>[] countOfTasksPerWeekAndEffeciency = (Map<String, Integer>[]) new Map[4];
+
+		for (int i = 0; i < 4; i++) {
+			countOfTasksPerRoleAndEffeciency[i] = new HashMap<String, Integer>();
+			countOfTasksPerWeekAndEffeciency[i] = new HashMap<String, Integer>();
+		}
+
+		Set<String> namesOfRoles = new HashSet<>();
+		for (Object[] row : rowsFromDB) {
+			namesOfRoles.add((String) row[2]);
+		}
+
+		for (String roleName : namesOfRoles) {
+			countOfTasksPerRole.put(roleName, 0);
+			for (int i = 0; i < 4; i++) {
+				countOfTasksPerRoleAndEffeciency[i].put(roleName, 0);
+			}
+		}
+
+		for (int i = 1; i <= countOfWeeksInMonth; i++) {
+			for (int j = 0; j < 4; j++) {
+				countOfTasksPerWeekAndEffeciency[j].put(String.format("Week %d", i), 0);
+			}
+		}
+
+		// fill maps with counts
+		Integer count;
+		String roleName;
+		String weekOfMonthString;
+		int effeciencyIndex;
+		LocalDate date;
+		LocalDate firstDate;
+		Boolean finished;
+		for (Object[] row : rowsFromDB) {
+			roleName = (String) row[2];
+			firstDate = (LocalDate) row[0];
+			date = (LocalDate) row[1];
+			finished = (Boolean) row[3];
+			weekOfMonthString = getWeekOfMonthString(firstDate);
+			effeciencyIndex = getEffeciencyIndex(firstDate, date, finished);
+			count = countOfTasksPerRole.get(roleName);
+			countOfTasksPerRole.put(roleName, count + 1);
+			count = countOfTasksPerRoleAndEffeciency[effeciencyIndex].get(roleName);
+			countOfTasksPerRoleAndEffeciency[effeciencyIndex].put(roleName, count + 1);
+			count = countOfTasksPerWeekAndEffeciency[effeciencyIndex].get(weekOfMonthString);
+			countOfTasksPerWeekAndEffeciency[effeciencyIndex].put(weekOfMonthString, count + 1);
+		}
+
+		// fill and retrieve StatsData object
+		StatsData sd = new StatsData();
+		sd.setCountOfTasksPerRole(countOfTasksPerRole);
+		sd.setCountOfTasksPerRoleAndEffeciency(countOfTasksPerRoleAndEffeciency);
+		sd.setCountOfTasksPerWeekAndEffeciency(countOfTasksPerWeekAndEffeciency);
+		return sd;
 	}
 
 	/**
@@ -222,27 +246,5 @@ public abstract class StatsService<T> {
 		if (numberOfSundayInMonth < 29)
 			return "Week 4";
 		return "Week 5";
-	}
-
-	/**
-	 * 
-	 * @param firstDate
-	 *            date on which the task was initially planed
-	 * @param date
-	 *            date of task's completion
-	 * @return 0 if task was completed before firstDate, 1 if task was completed
-	 *         in firstDate, 2 if task was completed within 3 days after
-	 *         firstDate, 3 otherwise
-	 */
-	private int getEffeciencyIndex(LocalDate firstDate, LocalDate date, boolean finished) {
-		if(finished == false || date == null)
-			return 3;
-		if (date.isBefore(firstDate))
-			return 0;
-		if (date.equals(firstDate))
-			return 1;
-		if (date.isBefore(firstDate.plusDays(4)))
-			return 2;
-		return 3;
 	}
 }

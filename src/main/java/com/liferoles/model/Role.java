@@ -29,8 +29,8 @@ import com.liferoles.rest.JSON.serializers.UserIdSerializer;
  * @author Honzator
  */
 @Entity
-public class Role implements Serializable{
-    
+public class Role implements Serializable {
+
 	/**
 	 * 
 	 */
@@ -38,76 +38,38 @@ public class Role implements Serializable{
 	/**
 	 * 
 	 */
-	@SequenceGenerator(name="role_id", sequenceName="role_id_seq", allocationSize = 1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="role_id")
+	@SequenceGenerator(name = "role_id", sequenceName = "role_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "role_id")
 	@Id
 	private Long id;
-    private String name;
-    
-    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER, orphanRemoval=true)
-    @JoinColumn(name="role_id")
-    private List<RoleGoal> goals;
-    
+	private String name;
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+	@JoinColumn(name = "role_id")
+	private List<RoleGoal> goals;
+
 	@ManyToOne
-    @JsonSerialize(using = UserIdSerializer.class)
-    @JsonDeserialize(using = UserIdDeserializer.class)
-    @JoinColumn(name="appuser_id")
-    private User user;
-	
-	public Role(){};
-	
-	public Role(Long id,String name,List<RoleGoal> goals,User u){
+	@JsonSerialize(using = UserIdSerializer.class)
+	@JsonDeserialize(using = UserIdDeserializer.class)
+	@JoinColumn(name = "appuser_id")
+	private User user;
+
+	public Role() {
+	};
+
+	public Role(Long id) {
+		this.id = id;
+	}
+
+	public Role(Long id, String name, List<RoleGoal> goals, User u) {
 		this.id = id;
 		this.name = name;
 		this.goals = goals;
 	}
-	
-	public Role(String name,List<RoleGoal> goals){
+
+	public Role(String name, List<RoleGoal> goals) {
 		this.name = name;
 		this.goals = goals;
-	}
-	
-	public Role(Long id){
-		this.id=id;
-	}
-
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public List<RoleGoal> getGoals() {
-		return goals;
-	}
-	public void setGoals(List<RoleGoal> goals) {
-		this.goals = goals;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public User getUser(){
-		return user;
-	}
-	public void setUser(User user){
-		this.user = user;
-	}
-	
-	@Override
-    public String toString() {
-        return "Role with id" + id;
-    }
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
 	}
 
 	@Override
@@ -126,6 +88,50 @@ public class Role implements Serializable{
 			return false;
 		return true;
 	}
-	
-	
+
+	public List<RoleGoal> getGoals() {
+		return goals;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	public void setGoals(List<RoleGoal> goals) {
+		this.goals = goals;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	@Override
+	public String toString() {
+		return "Role with id" + id;
+	}
+
 }

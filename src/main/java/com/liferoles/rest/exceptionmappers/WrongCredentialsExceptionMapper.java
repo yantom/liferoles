@@ -6,7 +6,6 @@ import javax.ws.rs.ext.Provider;
 
 import com.liferoles.exceptions.WrongCredentialsException;
 
-
 @Provider
 public class WrongCredentialsExceptionMapper implements ExceptionMapper<WrongCredentialsException> {
 	@Override

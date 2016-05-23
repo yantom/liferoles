@@ -9,10 +9,10 @@ import com.liferoles.model.Role;
 
 public class RolePartialSerializer extends JsonSerializer<Role> {
 	@Override
-	public void serialize(Role value, JsonGenerator jgen, SerializerProvider provider) throws IOException{
+	public void serialize(Role value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 		jgen.writeStartObject();
 		jgen.writeNumberField("id", value.getId());
 		jgen.writeStringField("name", value.getName());
-        jgen.writeEndObject();
-    }
+		jgen.writeEndObject();
+	}
 }

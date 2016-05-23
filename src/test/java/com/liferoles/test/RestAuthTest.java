@@ -24,57 +24,73 @@ import com.jayway.restassured.authentication.FormAuthConfig;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RestAuthTest {
-	
-	/**
-	 * missing tests for registerUserWeb (can not automatically send captcha)
-	 * missing tests for sendResetLink, resetUserPassword (requires email)
-	 */
-	
-	public RestAuthTest(){
-		baseURI = "https://localhost:8443";
-		useRelaxedHTTPSValidation();
-	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		DataSource ds = Utils.getDataSource();
-        try(Connection conn = ds.getConnection();PreparedStatement ps = conn.prepareStatement("delete from appuser where email like 'testuser1@gmail.com'");){
-        	ps.execute();
-        }
+		try (Connection conn = ds.getConnection();
+				PreparedStatement ps = conn
+						.prepareStatement("delete from appuser where email like 'testuser1@gmail.com'");) {
+			ps.execute();
+		}
+	}
+
+	/**
+	 * missing tests for registerUserWeb (can not automatically send captcha)
+	 * missing tests for sendResetLink, resetUserPassword (requires email)
+	 */
+
+	public RestAuthTest() {
+		baseURI = "https://localhost:8443";
+		useRelaxedHTTPSValidation();
 	}
 
 	@Test
-    public void a_registerUserMobile() {
-		//valid registration
-		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"')).post("/rest/auth/m/reg").then().body("id",greaterThan(0)).statusCode(200);
-		//registration with already used email
-		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"')).post("/rest/auth/m/reg").then().statusCode(greaterThanOrEqualTo(300));
+	public void a_registerUserMobile() {
+		// valid registration
+		given().contentType("application/json")
+				.body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"'))
+				.post("/rest/auth/m/reg").then().body("id", greaterThan(0)).statusCode(200);
+		// registration with already used email
+		given().contentType("application/json")
+				.body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"'))
+				.post("/rest/auth/m/reg").then().statusCode(greaterThanOrEqualTo(300));
 	}
-	
+
 	@Test
-    public void b_loginJWT(){
-		//valid credentials
-		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"')).post("/rest/auth/m/login").then().body("token",IsNot.not(isEmptyOrNullString())).statusCode(200);
-		//invalid credentials
-		given().contentType("application/json").body("{'email':'testuser1@gmail.com','password':'testuser2'}".replace('\'', '"')).post("/rest/auth/m/login").then().statusCode(204);
+	public void b_loginJWT() {
+		// valid credentials
+		given().contentType("application/json")
+				.body("{'email':'testuser1@gmail.com','password':'testuser1'}".replace('\'', '"'))
+				.post("/rest/auth/m/login").then().body("token", IsNot.not(isEmptyOrNullString())).statusCode(200);
+		// invalid credentials
+		given().contentType("application/json")
+				.body("{'email':'testuser1@gmail.com','password':'testuser2'}".replace('\'', '"'))
+				.post("/rest/auth/m/login").then().statusCode(204);
 	}
-	
+
 	@Test
-	public void c_loginSession(){
-		//valid credentials
-		String responseFromGoodPasswd = given().auth().form("testuser1@gmail.com", "testuser1", new FormAuthConfig("/j_security_check", "j_username", "j_password")).when().get("/").then().extract().asString();
+	public void c_loginSession() {
+		// valid credentials
+		String responseFromGoodPasswd = given().auth()
+				.form("testuser1@gmail.com", "testuser1",
+						new FormAuthConfig("/j_security_check", "j_username", "j_password"))
+				.when().get("/").then().extract().asString();
 		assertTrue(responseFromGoodPasswd.contains("ng-app=\"liferolesApp\""));
-		//invalid credentials
-		String responseFromBadPasswd = given().auth().form("testuser1@gmail.com", "testuser2", new FormAuthConfig("/j_security_check", "j_username", "j_password")).when().get("/").then().extract().asString();
+		// invalid credentials
+		String responseFromBadPasswd = given().auth()
+				.form("testuser1@gmail.com", "testuser2",
+						new FormAuthConfig("/j_security_check", "j_username", "j_password"))
+				.when().get("/").then().extract().asString();
 		assertTrue(responseFromBadPasswd.contains("ng-app=\"liferolesAuth\""));
 	}
-	
+
 	@Test
-	public void d_checkIfUserExistsInDB(){
-		//user which exists
+	public void d_checkIfUserExistsInDB() {
+		// user which exists
 		given().get("/rest/auth/check/testuser1@gmail.com").then().body("response", equalTo(true));
-		//user which does not exist
+		// user which does not exist
 		given().get("/rest/auth/check/testuser2@gmail.com").then().body("response", equalTo(false));
 	}
-	
+
 }
